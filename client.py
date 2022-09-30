@@ -49,7 +49,7 @@ frame3.grid(row=0, column=0, sticky="nsew")
 l_frame3.pack(side=tkinter.LEFT,fill="both",expand=True)
 r_frame3.pack(side=tkinter.RIGHT,fill="both",expand=True)
 
-#frame1
+#frame1 게임 시작 버튼
 game_st=tkinter.Button(frame1,bg='white',text="게임 시작",command = name_select)
 game_st.pack(padx=300,pady=500)
 
