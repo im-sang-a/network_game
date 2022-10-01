@@ -72,7 +72,7 @@ char_select_br = tkinter.Button(l_frame3, text = "캐릭터 선택", command = c
 char_select_br.place(x = 125,y= 260)
 
 #캐릭터 이미지
-image1=Image.open("image/image1.png")
+image1=Image.open("image/image1.jpg")
 image1=image1.resize((200,200))
 image1=ImageTk.PhotoImage(image1)
 image2=Image.open("image/image2.jpg")
