@@ -6,8 +6,10 @@ class Network:
         self.server = ""#IPv4 주소
         self.port = 60000
         self.addr = (self.server, self.port)
-        self.id = self.connect()
-        print(self.id)
+        self.mreq = self.connect()
+
+    def getMReq(self): #match requst 수령하는 함수
+        return self.mreq
 
     def connect(self): #서버와 연결
         try:
@@ -24,7 +26,4 @@ class Network:
         except socket.error as e:
             print(e)
 
-
-n = Network()
-print(n.send("Hiiii")) #send만. receive는 아직 없음. 서버가 보내긴 하는데 클라이언트에는 아직 처리하는 함수 없음
-print(n.send("working "))
+#n = network()는 test 용이었으므로 삭제

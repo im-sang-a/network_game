@@ -1,5 +1,7 @@
 import socket
 from _thread import *
+import threading
+
 import sys
 
 server = "" #IPv4주소: local host 이건 git 할 때 지우고 올리기. cmd->ipconfig 에서 하면 됨
@@ -20,6 +22,56 @@ s.listen()
 print('서버가 시작되었습니다. waiting for a connection')
 
 
+
+
+#채팅 기능 생성
+clients = [] #채팅 접속하면 여기로 입력
+nicknames = []
+
+def broadcast(message): #모든 client 에게로 메시지 전송
+    for client in clients:
+        client.send(message)
+
+def handle(client):
+    while True:
+        try:
+            message = client.recv(1024)
+            broadcast(message)
+        except:
+            index = clients.index(client)
+            clients.remove(client)
+            client.close()
+            nickname = nicknames[index]
+            broadcast(f'{nickname} left the chat!'.encode('ascii'))
+            nicknames.remove(nickname)
+            break
+
+def receive():
+    while True:
+        client, address = s.accept()
+        print(f'connected with {str(address)}')
+
+        client.send('NICK'.encode('ascii'))
+        nickname = client.recv(1024).decode('ascii')
+        nicknames.append(nickname)
+        clients.append(client)
+
+        print(f'nickname of the client is {nickname}')
+        broadcast(f'{nickname} joined the chat!'.encode('ascii'))
+        client.send("connected to the server".encode('ascii'))
+
+        thread = threading.Thread(target=handle, args=(client,))
+        thread.start()
+
+
+print("Server listening")
+receive()
+
+
+
+
+
+#서버와 클라이언트 그냥 연결
 def threaded_client(conn):
     conn.send(str.encode("Connected")) #연결된 상태
     reply = "192.168.0.105"
@@ -46,10 +98,13 @@ def threaded_client(conn):
 
 #conn, addr = s.accept()
 
+currentClient = 0
 #계속해서 클라이언트의 요청을 기다리는 상태
 #connection과 그것의 IP 주소(addr)
+
 while True:
     conn, addr = s.accept()
     print("Connected to:", addr) #client로 부터 주소를 받고 연결된 상태.
 
-    start_new_thread(threaded_client, (conn,))
+    start_new_thread(threaded_client, (conn, currentClient))
+    currentClient += 1# 연결된 클라이언트 수를 측정하기 위함
