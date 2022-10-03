@@ -4,7 +4,7 @@ import threading
 
 import sys
 
-server = "192.168.197.1" #IPv4주소: local host 이건 git 할 때 지우고 올리기. cmd->ipconfig 에서 하면 됨
+server = "" #IPv4주소: local host 이건 git 할 때 지우고 올리기. cmd->ipconfig 에서 하면 됨
 PORT = 60000
 
 #서버 소켓 생성
@@ -18,7 +18,7 @@ except socket.error as e:
     str(e)
 
 #서버에 접속할 클라이언트 수 제힌하고 싶으면 ()안에 수만큼 적으면 됨
-s.listen(2) #2로 제한. #작동 여부는 정확하지 않음..
+s.listen(2)
 print('서버가 시작되었습니다. waiting for a connection')
 
 
@@ -37,8 +37,8 @@ def broadcast(message): #모든 client 에게로 메시지 전송
 def handle(client):
     while True:
         try:
-            message = client.recv(1024) #클라이언트로부터 메시지 전송 받기
-            broadcast(message) #그 메시지를 모든 클라이언트에게 전송
+            message = client.recv(1024)
+            broadcast(message)
         except:
             #client의 접속이 종료된 것으로 간주. 클라이언트가 저장된 인덱스를 찾아서 리스트에서 각각 삭제 후 클라이언트 접속 종료 시킴.
             #이 경우, 남은 클라이언트는 계속 서버에 접속된 상태로 남아 있음.. 새로운 클라이언트가 접속할 때까지 대기.
