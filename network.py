@@ -1,5 +1,6 @@
 import socket
 
+#잠깐 대기. 우선은 필요 없음.(게임 개발할 때 참고)
 class Network:
     def __init__(self):
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

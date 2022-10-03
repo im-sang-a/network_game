@@ -18,11 +18,13 @@ except socket.error as e:
     str(e)
 
 #서버에 접속할 클라이언트 수 제힌하고 싶으면 ()안에 수만큼 적으면 됨
-s.listen(2)
+s.listen(2) #2로 제한. #작동 여부는 정확하지 않음..
 print('서버가 시작되었습니다. waiting for a connection')
 
 
 
+##클라이언트 매칭까지 완료된 상태. 화면 전환 필요.
+#대기화면이라고 간주.
 
 #채팅 기능 생성
 clients = [] #채팅 접속하면 여기로 addr 저장됨
@@ -35,9 +37,11 @@ def broadcast(message): #모든 client 에게로 메시지 전송
 def handle(client):
     while True:
         try:
-            message = client.recv(1024)
-            broadcast(message)
+            message = client.recv(1024) #클라이언트로부터 메시지 전송 받기
+            broadcast(message) #그 메시지를 모든 클라이언트에게 전송
         except:
+            #client의 접속이 종료된 것으로 간주. 클라이언트가 저장된 인덱스를 찾아서 리스트에서 각각 삭제 후 클라이언트 접속 종료 시킴.
+            #이 경우, 남은 클라이언트는 계속 서버에 접속된 상태로 남아 있음.. 새로운 클라이언트가 접속할 때까지 대기.
             index = clients.index(client)
             clients.remove(client)
             client.close()
@@ -48,63 +52,63 @@ def handle(client):
 
 def receive():
     while True:
-        client, address = s.accept()
+        client, address = s.accept() #클라이언트의 접속 허용
         print(f'connected with {str(address)}')
 
-        client.send('NICK'.encode('ascii'))
-        nickname = client.recv(1024).decode('ascii')
-        nicknames.append(nickname)
-        clients.append(client)
+        client.send('NICK'.encode('ascii')) #처음 - 클라이언트에게 클라이언트 닉네임 정보 받기 위해서 NICK 전송
+        nickname = client.recv(1024).decode('ascii') #클라이언트가 닉네임을 보내오면
+        nicknames.append(nickname) #닉네임 리스트에 저장
+        clients.append(client) #클라이언트는 클라이언트 리스트에 저장
 
         print(f'nickname of the client is {nickname}')
-        broadcast(f'{nickname} joined the chat!'.encode('ascii'))
-        client.send("connected to the server".encode('ascii'))
+        broadcast(f'{nickname} joined the chat!'.encode('ascii')) #접속한 클라이언트 모두에게 클라이언트가 접속했음을 broadcast
+        client.send("connected to the server".encode('ascii')) #접속한 클라이언트에게는 서버에 접속 되었음을 전송
 
-        thread = threading.Thread(target=handle, args=(client,))
+        thread = threading.Thread(target=handle, args=(client,))#handle 스레드(순수 채팅 기능) 시작
         thread.start()
 
 
-print("Server listening")
+#대기화면 - 채팅 기능 시작.
 receive()
 
 
 
 
-
-#서버와 클라이언트 그냥 연결
-def threaded_client(conn):
-    conn.send(str.encode("Connected")) #연결된 상태
-    reply = "192.168.0.105"
-    #curi = "net?" #보내는 reply가 network.py에서 어떻게 뜨는지 확인하고 싶었음.
-    while True: #이 함수가 클라이언트가 연결 되어있을 때도 계속 무한히 데이터를 받으면서 작동 해야 하기에
-        try:
-            data = conn.recv(2048) #받으려는 데이터 양 2048 bit 수. 에러 뜨면 이거 사이즈 키우기/데이터를 받기 전까지 보내지 X
-            reply = data.decode("utf-8") #받은 data는 우리가 읽을 수 있게 utf-8로 변경
-
-            if not data: #data를 받지 않으면 연결 해제
-                print("Disconnected")
-                break
-            else: #data 받은 경우,
-                print("Received: ", reply)
-                print("Sending : ", reply)
-
-            conn.sendall(str.encode(reply)) #정보를 보낼 떄 bit로 변경해서 전송
-        except:
-            print("threaded_client error")
-            break
-
-    print("Lost connection")
-    conn.close()
-
-#conn, addr = s.accept()
-
-currentClient = 0
-#계속해서 클라이언트의 요청을 기다리는 상태
-#connection과 그것의 IP 주소(addr)
-
-while True:
-    conn, addr = s.accept()
-    print("Connected to:", addr) #client로 부터 주소를 받고 연결된 상태.
-
-    start_new_thread(threaded_client, (conn, currentClient))
-    currentClient += 1# 연결된 클라이언트 수를 측정하기 위함
+#나중에 게임할 때 필요하면 사용하기.
+# #서버와 클라이언트 그냥 연결
+# def threaded_client(conn):
+#     conn.send(str.encode("Connected")) #연결된 상태
+#     reply = "" #ipv4
+#     #curi = "net?" #보내는 reply가 network.py에서 어떻게 뜨는지 확인하고 싶었음.
+#     while True: #이 함수가 클라이언트가 연결 되어있을 때도 계속 무한히 데이터를 받으면서 작동 해야 하기에
+#         try:
+#             data = conn.recv(2048) #받으려는 데이터 양 2048 bit 수. 에러 뜨면 이거 사이즈 키우기/데이터를 받기 전까지 보내지 X
+#             reply = data.decode("utf-8") #받은 data는 우리가 읽을 수 있게 utf-8로 변경
+#
+#             if not data: #data를 받지 않으면 연결 해제
+#                 print("Disconnected")
+#                 break
+#             else: #data 받은 경우,
+#                 print("Received: ", reply)
+#                 print("Sending : ", reply)
+#
+#             conn.sendall(str.encode(reply)) #정보를 보낼 떄 bit로 변경해서 전송
+#         except:
+#             print("threaded_client error")
+#             break
+#
+#     print("Lost connection")
+#     conn.close()
+#
+# #conn, addr = s.accept()
+#
+# currentClient = 0
+# #계속해서 클라이언트의 요청을 기다리는 상태
+# #connection과 그것의 IP 주소(addr)
+#
+# while True:
+#     conn, addr = s.accept()
+#     print("Connected to:", addr) #client로 부터 주소를 받고 연결된 상태.
+#
+#     start_new_thread(threaded_client, (conn, currentClient))
+#     currentClient += 1# 연결된 클라이언트 수를 측정하기 위함
