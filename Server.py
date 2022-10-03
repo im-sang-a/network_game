@@ -4,7 +4,7 @@ import threading
 
 import sys
 
-server = "" #IPv4주소: local host 이건 git 할 때 지우고 올리기. cmd->ipconfig 에서 하면 됨
+server = "192.168.197.1" #IPv4주소: local host 이건 git 할 때 지우고 올리기. cmd->ipconfig 에서 하면 됨
 PORT = 60000
 
 #서버 소켓 생성
@@ -18,7 +18,7 @@ except socket.error as e:
     str(e)
 
 #서버에 접속할 클라이언트 수 제힌하고 싶으면 ()안에 수만큼 적으면 됨
-s.listen(2)
+s.listen() #원래는 listen 으로 수 제한 가능하다고 들었는데 안됨 -> clients 리스트 길이로 접속 가능 수 제한 하기로 함
 print('서버가 시작되었습니다. waiting for a connection')
 
 
@@ -29,6 +29,10 @@ print('서버가 시작되었습니다. waiting for a connection')
 #채팅 기능 생성
 clients = [] #채팅 접속하면 여기로 addr 저장됨
 nicknames = [] #닉네임도 여기로 같은 순서로 저장됨
+
+# def limit_client():
+#     if len(clients) > 3:
+#         client.close()
 
 def broadcast(message): #모든 client 에게로 메시지 전송
     for client in clients:
@@ -50,10 +54,16 @@ def handle(client):
             nicknames.remove(nickname)
             break
 
+
+
 def receive():
     while True:
-        client, address = s.accept() #클라이언트의 접속 허용
-        print(f'connected with {str(address)}')
+        if len(clients) < 3: #접속 가능한 클라이언트 수 2로 제한
+            client, address = s.accept() #클라이언트의 접속 허용
+            print(f'connected with {str(address)}')
+        else:
+            client.send('room full'.encode('ascii'))
+            client.close()
         #여기까지는 문제 없음.
         client.send('NICK'.encode('ascii')) #처음 - 클라이언트에게 클라이언트 닉네임 정보 받기 위해서 NICK 전송
         #NICK을 전송하는 것이 먼저.
@@ -69,10 +79,13 @@ def receive():
         thread = threading.Thread(target=handle, args=(client,))#handle 스레드(순수 채팅 기능) 시작
         thread.start()
 
+        # thread = threading.Thread(target=limit_client, args=(client,))  # handle 스레드(순수 채팅 기능) 시작
+        # thread.start()
+
+
 
 #대기화면 - 채팅 기능 시작.
 receive()
-
 
 
 

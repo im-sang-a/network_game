@@ -13,7 +13,7 @@ client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 def match(): #매칭-서버 커넥팅 시도. 되면 채팅 시작. 안되면 아무것도 진행 안되도록.
     try:#클라이언트 접속 시도
-        client.connect(('', 60000)) #IP주소, port  #커넥트
+        client.connect(('192.168.197.1', 60000)) #IP주소, port  #커넥트
         print("게임에 접속했습니다. 대기 화면으로 이동합니다.")
         return 0
 
@@ -30,6 +30,10 @@ def receive(): #채팅 상에서 메시지를 받는 함수
             message = client.recv(1024).decode('ascii') #서버로부터 1024비트의 data를 받아서 decode
             if message == 'NICK': #만약 메시지가 'NICK'인 경우
                 client.send(nickname.encode('ascii')) #클라이언트가 앞서 입력한 닉네임을 서버로 전송
+            elif message == 'room full':
+                print("게임이 이미 진행중입니다. 나중에 다시 시도해주세요")
+                client.close()
+                break
             else: #이미 닉네임이 입력된 경우로, 이 경우 message 내용은 다른 클라이언트가 서버로 보낸 메시지 => message 출력
                 print(message)
 
