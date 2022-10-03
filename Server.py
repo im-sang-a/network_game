@@ -18,15 +18,15 @@ except socket.error as e:
     str(e)
 
 #서버에 접속할 클라이언트 수 제힌하고 싶으면 ()안에 수만큼 적으면 됨
-s.listen()
+s.listen(2)
 print('서버가 시작되었습니다. waiting for a connection')
 
 
 
 
 #채팅 기능 생성
-clients = [] #채팅 접속하면 여기로 입력
-nicknames = []
+clients = [] #채팅 접속하면 여기로 addr 저장됨
+nicknames = [] #닉네임도 여기로 같은 순서로 저장됨
 
 def broadcast(message): #모든 client 에게로 메시지 전송
     for client in clients:
