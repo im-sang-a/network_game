@@ -74,7 +74,7 @@ receive()
 #서버와 클라이언트 그냥 연결
 def threaded_client(conn):
     conn.send(str.encode("Connected")) #연결된 상태
-    reply = "192.168.0.105"
+    reply = "" #ipv4
     #curi = "net?" #보내는 reply가 network.py에서 어떻게 뜨는지 확인하고 싶었음.
     while True: #이 함수가 클라이언트가 연결 되어있을 때도 계속 무한히 데이터를 받으면서 작동 해야 하기에
         try:
