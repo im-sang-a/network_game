@@ -4,7 +4,7 @@ import threading
 
 import sys
 
-server = "" #IPv4주소: local host 이건 git 할 때 지우고 올리기. cmd->ipconfig 에서 하면 됨
+server = "192.168.197.1" #IPv4주소: local host 이건 git 할 때 지우고 올리기. cmd->ipconfig 에서 하면 됨
 PORT = 60000
 
 #서버 소켓 생성
@@ -54,9 +54,11 @@ def receive():
     while True:
         client, address = s.accept() #클라이언트의 접속 허용
         print(f'connected with {str(address)}')
-
+        #여기까지는 문제 없음.
         client.send('NICK'.encode('ascii')) #처음 - 클라이언트에게 클라이언트 닉네임 정보 받기 위해서 NICK 전송
+        #NICK을 전송하는 것이 먼저.
         nickname = client.recv(1024).decode('ascii') #클라이언트가 닉네임을 보내오면
+        #클라이언트가 닉네임 받음.받으면서 충돌하면서 생기는 문제.
         nicknames.append(nickname) #닉네임 리스트에 저장
         clients.append(client) #클라이언트는 클라이언트 리스트에 저장
 
@@ -70,6 +72,8 @@ def receive():
 
 #대기화면 - 채팅 기능 시작.
 receive()
+
+
 
 
 

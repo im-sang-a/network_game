@@ -13,7 +13,7 @@ client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 def match(): #매칭-서버 커넥팅 시도. 되면 채팅 시작. 안되면 아무것도 진행 안되도록.
     try:#클라이언트 접속 시도
-        client.connect(('', 60000)) #IP주소, port  #커넥트
+        client.connect(('192.168.197.1', 60000)) #IP주소, port  #커넥트
         print("게임에 접속했습니다. 대기 화면으로 이동합니다.")
         return 0
 
@@ -56,7 +56,7 @@ with concurrent.futures.ThreadPoolExecutor() as executor:
 # match_thread.start()
 
 #return_value가 1이면, 반환 받은 값이 1이면(연결 된 경우) 아래 채팅 스레드 모두 실행
-if return_value == 1:
+if return_value == 0: #여기 실수. 0인데 1로 해버림. 그래서 충돌해서 계속 winerror 10054떴었음
     # 채팅 - 메시지를 받는 스레드
     receive_thread = threading.Thread(target=receive)  # target 안에는 함수를 넣어서 실행
     receive_thread.start()
