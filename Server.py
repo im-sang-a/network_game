@@ -63,7 +63,7 @@ def receive():
             print(f'connected with {str(address)}')
         else:
             client.send('room full'.encode('ascii'))
-            client.close()
+
         #여기까지는 문제 없음.
         client.send('NICK'.encode('ascii')) #처음 - 클라이언트에게 클라이언트 닉네임 정보 받기 위해서 NICK 전송
         #NICK을 전송하는 것이 먼저.
