@@ -13,7 +13,7 @@ client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 def match(): #매칭-서버 커넥팅 시도. 되면 채팅 시작. 안되면 아무것도 진행 안되도록.
     try:#클라이언트 접속 시도
-        client.connect(('192.168.197.1', 60000)) #IP주소, port  #커넥트
+        client.connect(('', 60000)) #IP주소, port  #커넥트
         print("게임에 접속했습니다. 대기 화면으로 이동합니다.")
         return 0
 
