@@ -4,7 +4,7 @@ import threading
 
 import sys
 
-server = "192.168.197.1" #IPv4주소: local host 이건 git 할 때 지우고 올리기. cmd->ipconfig 에서 하면 됨
+server = "" #IPv4주소: local host 이건 git 할 때 지우고 올리기. cmd->ipconfig 에서 하면 됨
 PORT = 60000
 
 #서버 소켓 생성
