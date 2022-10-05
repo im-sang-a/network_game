@@ -30,7 +30,7 @@ def character_select():
 #채팅 입력한 거 화면에 보이게 (인터넷 참고해서 변경)
 def chat_send(e):
     message = chat_input.get()
-    chat_space.insert(END, '\n', + message)
+    chat_space.insert(END, '\n' + message)
 
 
 #게임창 띄우기
@@ -69,7 +69,7 @@ frame3_chat=LabelFrame(r_frame3,text="채팅창")
 frame3_chat.pack(fill="both",expand=True)
 #캐릭터 선택 버튼
 char_select_br = tkinter.Button(l_frame3, text = "캐릭터 선택", command = character_select)
-char_select_br.place(x = 125,y= 260)
+char_select_br.place(x = 125,y= 400)
 
 #캐릭터 이미지
 image1=Image.open("image/image1.jpg")
@@ -86,18 +86,18 @@ image4=image4.resize((200,200))
 image4=ImageTk.PhotoImage(image4)
 
 
-char_image1 = tkinter.Button(frame3_cha,image=image1, width = 150, height = 150)
-char_image2 = tkinter.Button(frame3_cha,image=image2, width = 150, height = 150)
-char_image3 = tkinter.Button(frame3_cha,image=image3, width = 150, height = 150)
-char_image4 = tkinter.Button(frame3_cha,image=image4, width = 150, height = 150)
-char_image1.pack()
-char_image2.pack()
-char_image3.pack()
-char_image4.pack()
+char_image1 = tkinter.Button(frame3_cha,image=image1, width = 130, height = 130)
+char_image2 = tkinter.Button(frame3_cha,image=image2, width = 130, height = 130)
+char_image3 = tkinter.Button(frame3_cha,image=image3, width = 130, height = 130)
+char_image4 = tkinter.Button(frame3_cha,image=image4, width = 130, height = 130)
+char_image1.place(x = 20, y= 20)
+char_image2.place( x=  160, y= 20)
+char_image3.place(x= 20, y = 190)
+char_image4.place(x= 160, y= 190)
 
 #채팅 보여질 공간 (Label에서 Text로 변경)
 chat_space = tkinter.Text(r_frame3, width = 35, height = 30)
-chat_space.place(x= 80, y= 0)
+chat_space.place(x= 50, y=30)
 
 #채팅입력 하는곳
 chat_input = tkinter.Entry(r_frame3)
