@@ -1,8 +1,11 @@
 import tkinter
 import tkinter.messagebox
 import tkinter.simpledialog
+import socket
+import threading
 from tkinter import *
 from PIL import ImageTk,Image
+from time import sleep
 
 #새로운 프레임 띄우기
 def openFrame(frame):
@@ -28,48 +31,22 @@ def character_select():
     pass
 
 #채팅 입력한 거 화면에 보이게 (인터넷 참고해서 변경)
-def chat_send(e):
+def chat_send():
     message = chat_input.get()
     chat_space.insert(END, '\n' + message)
-
 
 #게임창 띄우기
 window=tkinter.Tk()
 window.title("참참참 게임")
 window.geometry("700x700")
-window.resizable(False, False)
 
-frame1=tkinter.Frame(window,bg="red") #기본 프레임
-frame2=tkinter.Frame(window,bg="yellow") #두번째 프레임(닉네임 정하고 매칭 시작후 방 들어가는 화면)
-frame3=tkinter.Frame(window,bg="green") #세번째 프레임(대기방)
-
-
-l_frame3=tkinter.Frame(frame3,bg="pink") #대기방에서 쓸 공간 나눠보기
-r_frame3=tkinter.Frame(frame3,bg="white")
-
+frame1=tkinter.Frame(window) #기본 프레임
+frame2=tkinter.Frame(window) #두번째 프레임(닉네임 정하고 매칭 시작후 방 들어가는 화면)
+frame3=tkinter.Frame(window,bg="yellow") #세번째 프레임(대기방)
 
 frame1.grid(row=0, column=0, sticky="nsew")
 frame2.grid(row=0, column=0, sticky="nsew")
 frame3.grid(row=0, column=0, sticky="nsew")
-l_frame3.pack(side=tkinter.LEFT,fill="both",expand=True)
-r_frame3.pack(side=tkinter.RIGHT,fill="both",expand=True)
-
-#frame1(게임 첫 화면)
-game_st=tkinter.Button(frame1,bg='white',text="게임 시작",command = name_select)
-game_st.pack(padx=300,pady=500)
-
-#frame2(매칭방)
-input_nickname_bt=tkinter.Button(frame2,bg="white",text="방 입장",command=click_entrancebutton)
-input_nickname_bt.place(x = 315, y= 350)
-
-#frame3(대기방)
-frame3_cha=LabelFrame(l_frame3,text="캐릭터 선택창")
-frame3_cha.pack(fill="both",expand=True)
-frame3_chat=LabelFrame(r_frame3,text="채팅창")
-frame3_chat.pack(fill="both",expand=True)
-#캐릭터 선택 버튼
-char_select_br = tkinter.Button(l_frame3, text = "캐릭터 선택", command = character_select)
-char_select_br.place(x = 125,y= 400)
 
 #캐릭터 이미지
 image1=Image.open("image/image1.jpg")
@@ -84,33 +61,48 @@ image3=ImageTk.PhotoImage(image3)
 image4=Image.open("image/image4.jpg")
 image4=image4.resize((200,200))
 image4=ImageTk.PhotoImage(image4)
+playbt=Image.open("image/playbt.png")
+playbt=playbt.resize((150,100))
+playbt=ImageTk.PhotoImage(playbt)
 
+#frame1(게임 첫 화면)
+game_st=tkinter.Button(frame1,image=playbt,command = name_select)
+game_st.pack(padx=300,pady=500)
 
-char_image1 = tkinter.Button(frame3_cha,image=image1, width = 130, height = 130)
-char_image2 = tkinter.Button(frame3_cha,image=image2, width = 130, height = 130)
-char_image3 = tkinter.Button(frame3_cha,image=image3, width = 130, height = 130)
-char_image4 = tkinter.Button(frame3_cha,image=image4, width = 130, height = 130)
-char_image1.place(x = 20, y= 20)
-char_image2.place( x=  160, y= 20)
-char_image3.place(x= 20, y = 190)
-char_image4.place(x= 160, y= 190)
+#frame2(매칭방)
+input_nickname_bt=tkinter.Button(frame2,bg="white",text="방 입장",command=click_entrancebutton)
+input_nickname_bt.place(x = 315, y= 350)
+
+#frame3(대기방)
+#캐릭터 선택 버튼
+char_select_br = tkinter.Button(frame3, text = "캐릭터 선택", command = character_select)
+char_select_br.place(x =200,y=550)
+#캐릭터 버튼 배치
+char_image1 = tkinter.Button(frame3,image=image1, width = 200, height = 200)
+char_image2 = tkinter.Button(frame3,image=image2, width = 200, height = 200)
+char_image3 = tkinter.Button(frame3,image=image3, width = 200, height = 200)
+char_image4 = tkinter.Button(frame3,image=image4, width = 200, height = 200)
+char_image1.place(x=25,y=60)
+char_image2.place(x=235,y=60)
+char_image3.place(x=25,y=270)
+char_image4.place(x=235,y=270)
 
 #채팅 보여질 공간 (Label에서 Text로 변경)
-chat_space = tkinter.Text(r_frame3, width = 35, height = 30)
-chat_space.place(x= 50, y=30)
+chat_space = tkinter.Text(frame3, width = 30, height =35)
+chat_space.place(x= 460, y=30)
 
 #채팅입력 하는곳
-chat_input = tkinter.Entry(r_frame3)
-chat_input.bind("<Return>",chat_send)
-chat_input.place(x = 80, y = 470)
+chat_input = tkinter.Entry(frame3)
+# chat_input.bind("<Return>",chat_send)
+chat_input.place(x = 460, y = 500,width=155,height=22)
 
 #전송 버튼
-chat_br = tkinter.Button(r_frame3, text = "전송", command = chat_send)
-chat_br.place(x = 230,y= 465)
+chat_br = tkinter.Button(frame3, text = " 전송 ", command = chat_send)
+chat_br.place(x =630,y=495)
 
 #게임시작 버튼
-chamcham_st_bt= tkinter.Button(r_frame3,bg="white",text="게임 준비",command= cham_start)
-chamcham_st_bt.place(x = 250,y=650)
+chamcham_st_bt= tkinter.Button(frame3,image=playbt,command= cham_start)
+chamcham_st_bt.place(x=500,y=550)
 
 openFrame(frame1)
 window.mainloop()
