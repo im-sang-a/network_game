@@ -21,7 +21,7 @@ opponent_score = 0
 
 # 네트워크 클라이언트
 client = None
-HOST_ADDR = "192.168.91.1"
+HOST_ADDR = "192.168.16.1"
 HOST_PORT = 8080
 
 
@@ -123,9 +123,10 @@ final_frame.pack(side=tk.TOP)
 middle_frame.pack_forget()
 
 button_frame = tk.Frame(window_main)
-photo_rock = PhotoImage(file=r"rock.gif")
-photo_paper = PhotoImage(file=r"paper.gif")
-photo_scissors = PhotoImage(file=r"scissors.gif")
+photo_rock = PhotoImage(file="image/rock.gif")
+photo_paper = PhotoImage(file="image/paper.gif")
+photo_scissors = PhotoImage(file="image/scissors.gif")
+
 
 btn_rock = tk.Button(
     button_frame,
