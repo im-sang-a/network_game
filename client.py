@@ -16,11 +16,11 @@ def openFrame(frame):
 def click_entrancebutton():
     openFrame(frame3)
 
-
 def name_select():
     result = tkinter.simpledialog.askstring("제목", "닉네임을 입력하세요")
     global your_name
     your_name = str(result)
+    my_name.set(your_name)
     if your_name.encode().isalpha() == False:
         tk.messagebox.showerror(
             title="ERROR!", message="영어로 닉네임을 입력하세요."
@@ -68,6 +68,10 @@ window=tkinter.Tk()
 window.title("참참참 게임")
 window.geometry("700x700")
 
+global my_name, opp_name
+my_name = StringVar()
+opp_name = StringVar()
+
 frame1=tkinter.Frame(window) #기본 프레임
 frame2=tkinter.Frame(window) #두번째 프레임(닉네임 정하고 매칭 시작후 방 들어가는 화면)
 frame3=tkinter.Frame(window,bg="yellow") #세번째 프레임(대기방)
@@ -104,13 +108,12 @@ input_nickname_bt=tkinter.Button(frame2,bg="white",text="방 입장",command=cli
 input_nickname_bt.place(x = 315, y= 350)
 
 #frame3(대기방)
-
 #선택 이미지 표시
 select_char_can = tkinter.Label(frame3, width =150, height = 150,bg= 'yellow')
 select_char_can.place(x=50, y=50)
-select_char_user=tkinter.Label(frame3,text="내 입력 닉네임 보이게")
+select_char_user=tkinter.Label(frame3, textvariable= my_name)
 select_char_user.place(x=70,y=10)
-select_anchar_user=tkinter.Label(frame3,text="상대 입력 닉네임 보이게")
+select_anchar_user=tkinter.Label(frame3,textvariable= opp_name)
 select_anchar_user.place(x= 250,y=10)
 
 #캐릭터 선택 버튼
@@ -125,13 +128,11 @@ char_image1.place(x=25,y=240)
 char_image2.place(x=235,y=440)
 char_image3.place(x=25,y=440)
 char_image4.place(x=235,y=240)
-
 char_image1.bind('<Button>', character_select1)
 char_image2.bind('<Button>', character_select2)
 char_image3.bind('<Button>', character_select3)
 char_image4.bind('<Button>', character_select4)
 char_select_br.bind('<Button>', select_ok)
-
 
 
 #채팅 보여질 공간 (Label에서 Text로 변경)
@@ -172,8 +173,6 @@ lbl_name = tk.Label(top_welcome_frame, text="Name:")
 lbl_name.pack(side=tk.LEFT)
 ent_name = tk.Entry(top_welcome_frame)
 ent_name.pack(side=tk.LEFT)
-# btn_connect = tk.Button(top_welcome_frame, text="입장", command=lambda:connect())
-# btn_connect.pack(side=tk.LEFT)
 top_welcome_frame.pack(side=tk.TOP)
 
 
@@ -294,9 +293,6 @@ btn_scissors = tk.Button(
     image=photo_scissors,
 )
 
-#btn_connect.bind('<Button>', rps)
-
-
 def game_logic(you, opponent):
     winner = ""
     rock = "rock"
@@ -335,38 +331,12 @@ def enable_disable_buttons(todo):
         btn_paper.config(state=tk.NORMAL)
         btn_scissors.config(state=tk.NORMAL)
 
-
-"""
-def connect():
-    global your_name
-    if len(ent_name.get()) < 1:
-        tk.messagebox.showerror(
-            title="ERROR!", message="영어로 닉네임을 입력하세요."
-        )
-    else:
-        your_name = ent_name.get()
-        lbl_your_name["text"] = "당신의 닉네임: " + your_name
-        connect_to_server(your_name)
-"""
-
-
-
 def count_down(my_timer, nothing):
     global game_round
-    # if game_round <= TOTAL_NO_OF_ROUNDS:
-    #     game_round = game_round + 1
-
-    # lbl_game_round["text"] = "Game " + str(game_round) + " round 가 시작되었습니다."
     lbl_game_round["text"] = "Game이 시작되었습니다."
     btn_rock.place(x=250, y=450)
     btn_paper.place(x=320, y=450)
     btn_scissors.place(x=390, y=450)
-
-    # while my_timer > 0:
-    #     my_timer = my_timer - 1
-    #     print("게임 타이머: " + str(my_timer))
-    #     lbl_timer["text"] = my_timer
-    #     sleep(1)
 
     enable_disable_buttons("enable")
     lbl_round["text"] = "Round - " + str(game_round)
@@ -436,6 +406,8 @@ def receive_message_from_server(sck, m):
         elif from_server.startswith("opponent_name$"):
             opponent_name = from_server.replace("opponent_name$", "")
             lbl_opponent_name["text"] = "상대방 닉네임: " + opponent_name
+            op_name = str(opponent_name)
+            opp_name.set(op_name)
             top_frame.pack()
             middle_frame.pack()
 
@@ -484,40 +456,6 @@ def receive_message_from_server(sck, m):
             game_round = 0
             your_score = 0
             opponent_score = 0
-
-            # # 마지막 라운드 결과
-            # if game_round == TOTAL_NO_OF_ROUNDS:
-            #     # compute final result
-            #     final_result = ""
-            #     color = ""
-            #
-            #     if your_score > opponent_score:
-            #         final_result = "(당신이 선공입니다!!!)"
-            #         color = "green"
-            #     elif your_score < opponent_score:
-            #         final_result = "(당신이 방어입니다!!!)"
-            #         color = "red"
-            #     else:
-            #         final_result = "(무승부!!!)"
-            #         color = "black"
-            #
-            #     lbl_final_result["text"] = (
-            #         "최종결과: "
-            #         + str(your_score)
-            #         + " - "
-            #         + str(opponent_score)
-            #         + " "
-            #         + final_result
-            #     )
-            #     lbl_final_result.config(foreground=color)
-            #
-            #     enable_disable_buttons("disable")
-            #     game_round = 0
-            #     your_score = 0
-            #     opponent_score = 0
-            #
-            # # 타이머 시작
-            # threading._start_new_thread(count_down, (game_timer, ""))
 
     sck.close()
 
