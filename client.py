@@ -5,7 +5,8 @@ import tkinter.simpledialog
 import socket
 import threading
 from tkinter import *
-from PIL import ImageTk,Image
+from tkinter import PhotoImage
+# from PIL import ImageTk,Image
 
 #새로운 프레임 띄우기
 def openFrame(frame):
@@ -251,21 +252,12 @@ frame5.grid(row=0, column=0, sticky="nsew")
 
 
 #이미지
-image1=Image.open("image/image1.jpg")
-image1=image1.resize((200,200))
-image1=ImageTk.PhotoImage(image1)
-image2=Image.open("image/image2.jpg")
-image2=image2.resize((200,200))
-image2=ImageTk.PhotoImage(image2)
-image3=Image.open("image/image3.jpg")
-image3=image3.resize((200,200))
-image3=ImageTk.PhotoImage(image3)
-image4=Image.open("image/image4.jpg")
-image4=image4.resize((200,200))
-image4=ImageTk.PhotoImage(image4)
-playbt=Image.open("image/start.png")
-playbt=playbt.resize((180,90))
-playbt=ImageTk.PhotoImage(playbt)
+image1=PhotoImage(file="image/image1.gif")
+image2=PhotoImage(file="image/image2.gif")
+image3=PhotoImage(file="image/image3.gif")
+image4=PhotoImage(file="image/image4.gif")
+playbt=PhotoImage(file="image/start.gif")
+
 
 
 #frame1(게임 첫 화면)
