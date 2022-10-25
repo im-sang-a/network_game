@@ -266,10 +266,7 @@ image4=ImageTk.PhotoImage(image4)
 playbt=Image.open("image/start.png")
 playbt=playbt.resize((180,90))
 playbt=ImageTk.PhotoImage(playbt)
-# up_img=
-# down_img=
-# left_img=
-# right_img=
+
 
 #frame1(게임 첫 화면)
 game_st=tkinter.Button(frame1,image=playbt,command = name_select)
