@@ -6,7 +6,7 @@ import socket
 import threading
 from tkinter import *
 from tkinter import PhotoImage
-# from PIL import ImageTk,Image
+from time import sleep
 
 #새로운 프레임 띄우기
 def openFrame(frame):
@@ -27,13 +27,9 @@ def name_select():
         )
         name_select()
     else:
+        lbl_your_name["text"] = "당신의 닉네임: " + your_name
         connect_to_server(your_name)
         openFrame(frame2)
-
-
-#참참참 시작
-def cham_start():
-    pass
 
 #이미지선택
 a = None
@@ -132,8 +128,8 @@ def connect_to_server(name):
 
         # 위젯 비활성화
         # btn_connect.config(state=tk.DISABLED)
-        ent_name.config(state=tk.DISABLED)
-        lbl_name.config(state=tk.DISABLED)
+        # ent_name.config(state=tk.DISABLED)
+        # lbl_name.config(state=tk.DISABLED)
         enable_disable_buttons("disable")
 
         # 서버로부터 메세지를 계속 수신하기 위해 스레드 시작
@@ -197,16 +193,24 @@ def receive_message_from_server(sck, m):
                 round_result = "이겼습니다."
                 final_result = "(당신이 선공입니다!!!)"
                 color = "green"
+                sleep(3)
+                openFrame(frame5)
             elif who_wins == "opponent":
                 opponent_score = opponent_score + 1
                 round_result = "졌습니다."
                 final_result = "(당신이 방어입니다!!!)"
                 color = "red"
-
+                sleep(3)
+                openFrame(frame5)
             else:
                 round_result = "무승부"
                 final_result = "(무승부!!!)"
                 color = "black"
+                lbl_opponent_choice["text"] = "상대방의 선택: " + opponent_choice
+                lbl_result["text"] = "결과: " + round_result
+                lbl_game_round["text"] = "다시 선택해주세요."
+                enable_disable_buttons('')
+                continue
 
             # GUI 업데이트
             lbl_opponent_choice["text"] = "상대방의 선택: " + opponent_choice
@@ -228,9 +232,45 @@ def receive_message_from_server(sck, m):
 
     sck.close()
 
+# ##################################################
+# def cham_enable_disable_buttons(todo):
+#     if todo == "disable":
+#         btn_right.config(state=tk.DISABLED)
+#         btn_left.config(state=tk.DISABLED)
+#         btn_stop.config(state=tk.DISABLED)
+#     else:
+#         btn_right.config(state=tk.NORMAL)
+#         btn_left.config(state=tk.NORMAL)
+#         btn_stop.config(state=tk.NORMAL)
+#
+# def cham_choice(arg):
+#     global your_choice, client, game_round
+#     your_choice = arg
+#     cham_lbl_your_choice["text"] = "당신의 선택: " + your_choice
+#
+#     if client:
+#         dataToSend = "Game_Round" + str(game_round) + your_choice
+#         client.send(dataToSend.encode())
+#         cham_enable_disable_buttons("disable")
+#
+# #게임 함수
+# #가위바위보 이긴사람 선공하도록
+# def chamcham_logic(you,opponent):
+#     winner=""
+#     right="right"
+#     left="left"
+#     stop="stop"
+#     player0="you"
+#     player1="opponent"
+#
+#     if you==opponent: #you=공격, opponent=방어
+#         winner=player0
+#     else:
+#         winner=player1
+#     return winner
 
 '**************************게임창 띄우기******************************'
-window=tkinter.Tk()
+window=tk.Tk()
 window.title("참참참 게임")
 window.geometry("700x700")
 
@@ -239,11 +279,11 @@ my_name = StringVar()
 opp_name = StringVar()
 
 #프레임 정의
-frame1=tkinter.Frame(window) #기본 프레임
-frame2=tkinter.Frame(window) #닉네임 정하고 매칭 시작후 방 들어가는 화면
-frame3=tkinter.Frame(window) #대기방
-frame4=tkinter.Frame(window) #가위바위보 창
-frame5=tkinter.Frame(window) #참참참 게임
+frame1=tk.Frame(window) #기본 프레임
+frame2=tk.Frame(window) #닉네임 정하고 매칭 시작후 방 들어가는 화면
+frame3=tk.Frame(window) #대기방
+frame4=tk.Frame(window,bg='yellow') #가위바위보 창
+frame5=tk.Frame(window,bg='pink') #참참참 게임
 frame1.grid(row=0, column=0, sticky="nsew")
 frame2.grid(row=0, column=0, sticky="nsew")
 frame3.grid(row=0, column=0, sticky="nsew")
@@ -261,30 +301,30 @@ playbt=PhotoImage(file="image/start.gif")
 
 
 #frame1(게임 첫 화면)
-game_st=tkinter.Button(frame1,image=playbt,command = name_select)
+game_st=tk.Button(frame1,image=playbt,command = name_select)
 game_st.pack(padx=300,pady=500)
 
 #frame2(매칭방)
-input_nickname_bt=tkinter.Button(frame2,bg="white",text="방 입장",command=click_entrancebutton)
+input_nickname_bt=tk.Button(frame2,bg="white",text="방 입장",command=click_entrancebutton)
 input_nickname_bt.place(x = 315, y= 350)
 
 #frame3(대기방)
 #선택 이미지 표시
-select_char_can = tkinter.Label(frame3, width =150, height = 150)
+select_char_can = tk.Label(frame3, width =150, height = 150)
 select_char_can.place(x=50, y=50)
-select_char_user=tkinter.Label(frame3, textvariable= my_name)
+select_char_user=tk.Label(frame3, textvariable= my_name)
 select_char_user.place(x=70,y=10)
-select_anchar_user=tkinter.Label(frame3,textvariable= opp_name)
+select_anchar_user=tk.Label(frame3,textvariable= opp_name)
 select_anchar_user.place(x= 250,y=10)
 
 #캐릭터 선택 버튼
-char_select_br = tkinter.Button(frame3, text = "캐릭터 선택")
+char_select_br = tk.Button(frame3, text = "캐릭터 선택")
 char_select_br.place(x =200,y=660)
 #캐릭터 버튼 배치
-char_image1 = tkinter.Button(frame3,image=image1, width = 200, height = 200)
-char_image2 = tkinter.Button(frame3,image=image2, width = 200, height = 200)
-char_image3 = tkinter.Button(frame3,image=image3, width = 200, height = 200)
-char_image4 = tkinter.Button(frame3,image=image4, width = 200, height = 200)
+char_image1 = tk.Button(frame3,image=image1, width = 200, height = 200)
+char_image2 = tk.Button(frame3,image=image2, width = 200, height = 200)
+char_image3 = tk.Button(frame3,image=image3, width = 200, height = 200)
+char_image4 = tk.Button(frame3,image=image4, width = 200, height = 200)
 char_image1.place(x=25,y=240)
 char_image2.place(x=235,y=440)
 char_image3.place(x=25,y=440)
@@ -297,29 +337,29 @@ char_select_br.bind('<Button>', select_ok)
 
 
 #채팅 보여질 공간 (Label에서 Text로 변경)
-chat_space = tkinter.Text(frame3, width = 30, height =35)
+chat_space = tk.Text(frame3, width = 30, height =35)
 chat_space.place(x= 460, y=30)
 
 #채팅입력 하는곳
-chat_input = tkinter.Entry(frame3)
+chat_input = tk.Entry(frame3)
 # chat_input.bind("<Return>",chat_send)
 chat_input.place(x = 460, y = 500,width=155,height=22)
 
 #전송 버튼
-chat_br = tkinter.Button(frame3, text = " 전송 ", command = chat_send)
+chat_br = tk.Button(frame3, text = " 전송 ", command = chat_send)
 chat_br.place(x =630,y=495)
 
 #가위바위보 게임시작 버튼
-chamcham_st_bt= tkinter.Button(frame3,image=playbt,command=lambda :openFrame(frame4))
+chamcham_st_bt= tk.Button(frame3,image=playbt,command=lambda :openFrame(frame4))
 chamcham_st_bt.place(x=500,y=550)
 
 your_name = ""
 opponent_name = ""
-game_round = 0
+game_round = 1
 game_timer = 4
 your_choice = ""
 opponent_choice = ""
-TOTAL_NO_OF_ROUNDS = 1
+TOTAL_NO_OF_ROUNDS = 2
 your_score = 0
 opponent_score = 0
 
@@ -329,12 +369,12 @@ HOST_ADDR = "192.168.16.1"
 HOST_PORT = 8080
 
 
-top_welcome_frame = tk.Frame(frame4)
-lbl_name = tk.Label(top_welcome_frame, text="Name:")
-lbl_name.pack(side=tk.LEFT)
-ent_name = tk.Entry(top_welcome_frame)
-ent_name.pack(side=tk.LEFT)
-top_welcome_frame.pack(side=tk.TOP)
+# top_welcome_frame = tk.Frame(frame4)
+# lbl_name = tk.Label(top_welcome_frame, text="Name:")
+# lbl_name.pack(side=tk.LEFT)
+# ent_name = tk.Entry(top_welcome_frame)
+# ent_name.pack(side=tk.LEFT)
+# top_welcome_frame.pack(side=tk.TOP)
 
 
 top_message_frame = tk.Frame(frame4)
@@ -357,7 +397,7 @@ top_left_frame = tk.Frame(
     top_frame, highlightbackground="green", highlightcolor="green", highlightthickness=1
 )
 lbl_your_name = tk.Label(
-    top_left_frame, text="당신의 닉네임: " + your_name, font="Helvetica 13 bold"
+    top_left_frame, text="당신의 닉네임: " + your_name, font="Helvetica 11 bold"
 )
 lbl_opponent_name = tk.Label(top_left_frame, text="상대방 닉네임: " + opponent_name)
 lbl_your_name.grid(row=0, column=0, padx=5, pady=8)
@@ -426,7 +466,7 @@ final_frame.pack(side=tk.TOP)
 
 middle_frame.pack_forget()
 
-button_frame = tk.Frame(frame4,bg="pink")
+button_frame = tk.Frame(frame4)
 button_frame.pack(side=tk.BOTTOM)
 photo_rock = PhotoImage(file="image/rock.gif")
 photo_paper = PhotoImage(file="image/paper.gif")
@@ -454,6 +494,110 @@ btn_scissors = tk.Button(
     image=photo_scissors,
 )
 
+# # #############################################################################
+# #참참참
+# cham_top_frame = tk.Frame(frame5)
+# cham_top_left_frame = tk.Frame(
+#     cham_top_frame, highlightbackground="green", highlightcolor="green", highlightthickness=1
+# )
+# cham_lbl_your_name = tk.Label(
+#     cham_top_left_frame, text="당신의 닉네임: " + your_name, font="Helvetica 13 bold"
+# )
+# cham_lbl_opponent_name = tk.Label(cham_top_left_frame, text="상대방 닉네임: " + opponent_name)
+# cham_lbl_your_name.grid(row=0, column=0, padx=5, pady=8)
+# cham_lbl_opponent_name.grid(row=1, column=0, padx=5, pady=8)
+# cham_top_left_frame.pack(side=tk.LEFT, padx=(10, 10))
+#
+#
+# cham_top_right_frame = tk.Frame(
+#     cham_top_frame, highlightbackground="green", highlightcolor="green", highlightthickness=1
+# )
+# cham_lbl_game_round = tk.Label(
+#     cham_top_right_frame,
+#     text=" ",
+#     foreground="blue",
+#     font="Helvetica 14 bold",
+# )
+#
+# # cham_lbl_timer = tk.Label(
+# #     cham_top_right_frame, text=" ", font="Helvetica 24 bold", foreground="blue"
+# # )
+#
+# cham_lbl_game_round.grid(row=0, column=0, padx=5, pady=5)
+# cham_top_right_frame.pack(side=tk.RIGHT, padx=(10, 10))
+#
+# cham_top_frame.pack_forget()
+#
+# cham_middle_frame = tk.Frame(frame5)
+#
+# cham_lbl_line = tk.Label(
+#     cham_middle_frame, text="***********************************************************"
+# ).pack()
+#
+# #GAMELOG 없엠
+#
+# cham_round_frame = tk.Frame(cham_middle_frame)
+# cham_lbl_round = tk.Label(cham_round_frame, text="Round")
+# cham_lbl_round.pack()
+# cham_lbl_your_choice = tk.Label(
+#     cham_round_frame, text="당신의 선택: " + "None", font="Helvetica 13 bold"
+# )
+# cham_lbl_your_choice.pack()
+# cham_lbl_opponent_choice = tk.Label(cham_round_frame, text="상대방 선택: " + "None")
+# cham_lbl_opponent_choice.pack()
+# cham_lbl_result = tk.Label(
+#     cham_round_frame, text=" ", foreground="blue", font="Helvetica 14 bold"
+# )
+# cham_lbl_result.pack()
+# cham_round_frame.pack(side=tk.TOP)
+#
+# cham_final_frame = tk.Frame(cham_middle_frame)
+# cham_lbl_line = tk.Label(
+#     cham_final_frame, text="***********************************************************"
+# ).pack()
+# cham_lbl_final_result = tk.Label(
+#     cham_final_frame, text=" ", font="Helvetica 13 bold", foreground="blue"
+# )
+# cham_lbl_final_result.pack()
+# cham_final_frame.pack(side=tk.TOP)
+#
+# cham_middle_frame.pack_forget()
+#
+# #수비일때
+# cham_choice_img=tk.Label(frame5,width=150,height=150)
+# cham_choice_img.pack(side=tk.BOTTOM)
+# right_cat=PhotoImage(file="image/right_cat.gif")
+# stop_cat=PhotoImage(file="image/stop_cat.gif")
+# left_cat=PhotoImage(file="image/left_cat.gif")
+#
+# #공격일때
+# cham_button_frame=tk.Frame(frame5)
+# cham_button_frame.pack(side=tk.BOTTOM)
+# photo_right = PhotoImage(file="image/right_hand.gif")
+# photo_left = PhotoImage(file="image/left_hand.gif")
+# photo_stop = PhotoImage(file="image/stop_hand.gif")
+#
+# btn_right = tk.Button(
+#     cham_button_frame,
+#     text="오른쪽",
+#     command=lambda: cham_choice("right"),
+#     state=tk.DISABLED,
+#     image=photo_right,
+# )
+# btn_stop = tk.Button(
+#     cham_button_frame,
+#     text="정지",
+#     command=lambda: cham_choice("stop"),
+#     state=tk.DISABLED,
+#     image=photo_stop,
+# )
+# btn_left = tk.Button(
+#     cham_button_frame,
+#     text="왼쪽",
+#     command=lambda: cham_choice("left"),
+#     state=tk.DISABLED,
+#     image=photo_left,
+# )
 
 openFrame(frame1)
 window.mainloop()
