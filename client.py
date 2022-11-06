@@ -338,12 +338,12 @@ chamcham_st_bt= tk.Button(frame3,image=playbt,command=lambda :openFrame(frame4))
 chamcham_st_bt.place(x=500,y=550)
 
 #나가기 버튼
-exit_bt = tk.Button(frame3, width =30, height = 30, bg= 'blue', command=quit)
+exit_bt = tk.Button(frame5, width =30, height = 30, bg= 'blue', command=quit)
 exit_bt.place(x = 550, y= 660)
 
 #대기방 돌아가기
-exit_bt2 = tk.Button(frame5, width =30, height = 30, bg= 'pink', command= lambda :openFrame(frame3))
-exit_bt2.place(x = 500, y= 600)
+#exit_bt2 = tk.Button(frame5, width =30, height = 30, bg= 'pink', command= lambda :openFrame(frame3))
+#exit_bt2.place(x = 500, y= 600)
 
 your_name = ""
 opponent_name = ""
