@@ -1,102 +1,508 @@
-from network import Network
+# -*- coding: utf-8 -*-
+import tkinter as tk
+import tkinter.messagebox
+import tkinter.simpledialog
 import socket
 import threading
-import concurrent.futures
+from threading import Thread
+from time import sleep
+from tkinter import *
+from tkinter import PhotoImage
+# from PIL import ImageTk,Image
 
-#닉네임 입력 및 매칭 하는 화면
-
-nickname = input("choose a nickname: ") #닉네임 입력하는 창
-
-#입력 완료하면 client는 socket 통신 실행
-client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-
-def match(): #매칭-서버 커넥팅 시도. 되면 채팅 시작. 안되면 아무것도 진행 안되도록.
-    try:#클라이언트 접속 시도
-        client.connect(('', 60000)) #IP주소, port  #커넥트
-        print("게임에 접속했습니다. 대기 화면으로 이동합니다.")
-        return 0
-
-    except:
-        #이미 매칭인원이 꽉 차서 접속이 안되는 경우로 나중에 다시 시도해달라는 메시지.
-        print("게임이 이미 진행중입니다. 나중에 다시 시도해주세요")
-        return 1
+#새로운 프레임 띄우기
+def openFrame(frame):
+    frame.tkraise()
 
 
-#대기 화면 - 채팅 기능
-def receive(): #채팅 상에서 메시지를 받는 함수
+def name_select():
+    result = tkinter.simpledialog.askstring("제목", "닉네임을 입력하세요")
+    global your_name
+    your_name = str(result)
+    my_name.set(your_name)
+    if your_name.encode().isalpha() == False:
+        tk.messagebox.showerror(
+            title="ERROR!", message="영어로 닉네임을 입력하세요."
+        )
+        name_select()
+    else:
+        lbl_your_name["text"] = "당신의 닉네임: " + your_name
+        connect_to_server(your_name)
+
+
+
+#이미지선택
+a = None
+def character_select1(e):
+    global a
+    a = image1
+
+def character_select2(e):
+    global a
+    a = image2
+
+def character_select3(e):
+    global a
+    a = image3
+
+def character_select4(e):
+    global a
+    a = image4
+
+def select_ok(e):
+    select_char_can.configure(image = a)
+
+def chat_send():
+    message = f'message: {your_name}: {chat_input.get()}'
+    client.send(message.encode('ascii'))
+    chat_input.delete(0, 'end')
+
+def game_logic(you, opponent):
+    winner = ""
+    rock = "rock"
+    paper = "paper"
+    scissors = "scissors"
+    player0 = "you"
+    player1 = "opponent"
+
+    if you == opponent:
+        winner = "draw"
+    elif you == rock:
+        if opponent == paper:
+            winner = player1
+        else:
+            winner = player0
+    elif you == scissors:
+        if opponent == rock:
+            winner = player1
+        else:
+            winner = player0
+    elif you == paper:
+        if opponent == scissors:
+            winner = player1
+        else:
+            winner = player0
+    return winner
+
+
+def enable_disable_buttons(todo):
+    if todo == "disable":
+        btn_rock.config(state=tk.DISABLED)
+        btn_paper.config(state=tk.DISABLED)
+        btn_scissors.config(state=tk.DISABLED)
+    else:
+        btn_rock.config(state=tk.NORMAL)
+        btn_paper.config(state=tk.NORMAL)
+        btn_scissors.config(state=tk.NORMAL)
+
+def count_down(my_timer, nothing):
+    global game_round
+    if game_round <= TOTAL_NO_OF_ROUNDS:
+        game_round = game_round + 1
+
+    lbl_game_round["text"] = "Game " + str(game_round) + " round 가 시작되었습니다."
+
+    while my_timer > 0:
+        my_timer = my_timer - 1
+        print("게임 타이머: " + str(my_timer))
+        lbl_timer["text"] = my_timer
+        sleep(1)
+
+    enable_disable_buttons("enable")
+    lbl_round["text"] = "Round - " + str(game_round)
+    lbl_final_result["text"] = " "
+
+def choice(arg):
+    global your_choice, client, game_round
+    your_choice = arg
+    lbl_your_choice["text"] = "당신의 선택: " + your_choice
+
+    if client:
+        dataToSend = "Game_Round" + str(game_round) + your_choice
+        client.send(dataToSend.encode())
+        enable_disable_buttons("disable")
+
+
+def connect_to_server(name): #
+    global client, HOST_PORT, HOST_ADDR, your_name
+    try:
+        client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        client.connect((HOST_ADDR, HOST_PORT))
+        client.send(name.encode())  # 연결 후 서버에게 메세지 보냄
+
+        # 서버로부터 메세지를 계속 수신하기 위해 스레드 시작
+        openFrame(frame2)  ##추가함
+        threading._start_new_thread(receive_message_from_server, (client, "m"))
+        # threading._start_new_thread(chat_receive, (client,))
+        # threading._start_new_thread(chat_send, (client,))
+
+
+    except Exception as e:
+        tk.messagebox.showerror(
+            title="ERROR!!!",
+            message="host와 연결 할 수 없습니다. "
+            + HOST_ADDR
+            + " on port: "
+            + str(HOST_PORT)
+            + " 연결 할 수 없습니다. 다시 시도해주세요. "
+        )
+
+
+def receive_message_from_server(sck, m): #매칭
+    global your_name, opponent_name, game_round
+    global your_choice, opponent_choice, your_score, opponent_score,final_result,color
+    final_result = ""
+    color = ""
+
     while True:
-        try:
-            message = client.recv(1024).decode('ascii') #서버로부터 1024비트의 data를 받아서 decode
-            if message == 'NICK': #만약 메시지가 'NICK'인 경우
-                client.send(nickname.encode('ascii')) #클라이언트가 앞서 입력한 닉네임을 서버로 전송
-            elif message == 'room full':
-                print("게임이 이미 진행중입니다. 나중에 다시 시도해주세요")
-                client.close()
-                break
-            else: #이미 닉네임이 입력된 경우로, 이 경우 message 내용은 다른 클라이언트가 서버로 보낸 메시지 => message 출력
-                print(message)
+        from_server = str(sck.recv(4096).decode())
 
-        except: #받은 정보가 없으면 에러 발생. client 연결 해제
-            print("An error occurred!")
-            client.close()
+        if not from_server:
             break
 
-def write(): #채팅 상에서 메시지를 입력해서 서버로 메시지 내용을 전송하는 함수
-    while True:
-        message = f'{nickname}: {input("")}'
-        client.send(message.encode('ascii'))
+        if from_server.startswith("welcome"):
+            #이걸 바꿔야 함. 안에 if문들
+            if from_server == "welcome1":
+                lbl_welcome["text"] = (
+                    " 환영합니다! " + your_name + "님 상대방을 기다려주세요."
+                )
+            elif from_server == "welcome2":
+            #이것도 바꿔야 함.
+                lbl_welcome["text"] = (
+                    " 환영합니다! " + your_name + "님 상대방을 기다려주세요."
+                )
+            lbl_line_server.pack()
 
-#리시브 함수 실행
-#멀티 스레드
+        elif from_server.startswith("opponent_name$"):
+            #이것도 바꿔야 함(상대방까지 매칭 완료된 상황)
+            opponent_name = from_server.replace("opponent_name$", "")
+            lbl_opponent_name["text"] = "상대방 닉네임: " + opponent_name
+            top_frame.pack()
+            middle_frame.pack()
+            openFrame(frame3)
 
-#return 값을 얻기 위해서 아래 코드로 바꿈.
-#참고: #https://rateye.tistory.com/880
-with concurrent.futures.ThreadPoolExecutor() as executor:
-    future = executor.submit(match)
-    return_value = future.result() #return 값
+            # 두 명의 사용자 연결되어 게임 시작 준비 완료
+            threading._start_new_thread(count_down, (game_timer, ""))
+            lbl_welcome.config(state=tk.DISABLED)
+            lbl_line_server.config(state=tk.DISABLED)
 
-# match_thread = threading.Thread(target=match)#매칭 시작.
-# match_thread.start()
-
-#return_value가 1이면, 반환 받은 값이 1이면(연결 된 경우) 아래 채팅 스레드 모두 실행
-if return_value == 0: #여기 실수. 0인데 1로 해버림. 그래서 충돌해서 계속 winerror 10054떴었음
-    # 채팅 - 메시지를 받는 스레드
-    receive_thread = threading.Thread(target=receive)  # target 안에는 함수를 넣어서 실행
-    receive_thread.start()
-
-    # 채팅 - 메시지를 작성하는 스레드
-    write_thread = threading.Thread(target=write)
-    write_thread.start()
-
-
-#->채팅 기능 실행 완료
-
-
-
-
-
-# def main():#게임을 실행하는 메인 함수
-#     run = True
-#     n = Network()
-#     startPos = n.getPos() #이거는 움직이는 게임을 보고 참고한 거기 때문에 처음 시작 지점(좌표)를 받는 함수->이 함수를
-#
-#
-#     while run:
-#         p2Pos = n.send()
-#
-# #1) 닉네임 정하기 완료 버튼 누르면
-# # #클라이언트가 매칭 요청 정보를 서버로 전송
-# def match_req():
-#     pass
-# 서버는 매칭 정보 수령 후, 이전에 매치 요청 보낸 사람이 있는지 확인
-#없다면, 대기룸 입장 또는 매칭 중입니다..?네트워크는 print("searching...") / 있다면 매칭 시작 print("match sucssesfully done.")
+        #########################수정
+        elif from_server.startswith("message"):
+            try:
+                msg = from_server[9:len(from_server)] + """\n"""
+                chat_space.insert(tkinter.END, msg)  ##이건 채팅창에 출력되어야 함 END, '\n',
+                print("chat_receive worked. message received and inserted")
+            except:
+                print("error. chat_receive not working. no message received")
 
 
+###########################################################
 
-#2)채팅 기능
-#특정 바이트 만큼 입력 받고 서버로 전송해서 양쪽 클라이언트 화면에 모두 뜨도록 하기
+        elif from_server.startswith("$opponent_choice"):
+            # 서버에서 상대방 선택-> 가위 바위 보 선택
+            opponent_choice = from_server.replace("$opponent_choice", "")
+
+            # 누가 이겼는지 결과
+            who_wins = game_logic(your_choice, opponent_choice)
+            round_result = " "
+            if who_wins == "you":
+                your_score = your_score + 1
+                round_result = "이겼습니다."
+                # final_result = "(당신이 선공입니다!!!)"
+                # color = "green"
+            elif who_wins == "opponent":
+                opponent_score = opponent_score + 1
+                round_result = "졌습니다."
+                # final_result = "(당신이 방어입니다!!!)"
+                # color = "red
+
+            else:
+                round_result = "무승부"
+                # final_result = "(무승부!!!)"
+                # color = "black"
+                # lbl_opponent_choice["text"] = "상대방의 선택: " + opponent_choice
+                # lbl_result["text"] = "결과: " + round_result
+                # lbl_game_round["text"] = "다시 선택해주세요."
+                # enable_disable_buttons('')
+                # continue
+
+            # GUI 업데이트
+            lbl_opponent_choice["text"] = "상대방의 선택: " + opponent_choice
+            lbl_result["text"] = "결과: " + round_result
+
+            # 마지막 라운드 결과
+            if game_round == TOTAL_NO_OF_ROUNDS:
+                # compute final result
+                final_result = ""
+                color = ""
+
+                if your_score > opponent_score:
+                    final_result = "(당신이 이겼습니다!!!)"
+                    color = "green"
+                elif your_score < opponent_score:
+                    final_result = "(당신이 졌습니다!!!)"
+                    color = "red"
+                else:
+                    final_result = "(무승부!!!)"
+                    color = "black"
+                    # sleep(2)
+                    # game_logic(your_choice, opponent_choice)
+
+                lbl_final_result["text"] = (
+                    "잠시후 결과창으로 이동합니다!!!"
+                )
+                lbl_final_result.config(foreground=color)
+                enable_disable_buttons("disable")
+
+                sleep(3)
+                openFrame(frame5)
+
+                result = tk.Label(frame5, text="최종결과: "
+                   + str(your_score)
+                   + " - "
+                   + str(opponent_score)
+                   + " "
+                   + final_result)
+                result.place(x=315, y=350)
+
+                game_round = 0
+                your_score = 0
+                opponent_score = 0
+
+            threading._start_new_thread(count_down, (game_timer, ""))
+    sck.close()
 
 
-#3)클라이언트 A가 캐릭터 선택을 완료하면 서버로 선택된 캐릭터를 서버로 보내고 (print("character 1 selected")) 클라이언트 B에게 그 메시지가 뜨도록 하기.
-# (A에는 이미 떠 있으니까 B에만 전송해서 뜨게 하면 됨/클라이언트 A에 뜨는 메시지는 서버를 통해서이면 안됨) (나중에 메시지를 이미지로 대체)
+'**************************게임창 띄우기******************************'
+window=tkinter.Tk()
+window.title("참참참 게임")
+window.geometry("700x700")
+
+
+
+
+global my_name, opp_name
+my_name = StringVar()
+opp_name = StringVar()
+
+#프레임 정의
+frame1=tkinter.Frame(window) #기본 프레임
+frame2=tkinter.Frame(window) #닉네임 정하고 매칭 시작후 방 들어가는 화면
+frame3=tkinter.Frame(window) #대기방
+frame4=tkinter.Frame(window) #가위바위보 창
+frame5=tkinter.Frame(window) #참참참 게임
+frame1.grid(row=0, column=0, sticky="nsew")
+frame2.grid(row=0, column=0, sticky="nsew")
+frame3.grid(row=0, column=0, sticky="nsew")
+frame4.grid(row=0, column=0, sticky="nsew")
+frame5.grid(row=0, column=0, sticky="nsew")
+
+
+#이미지
+image1=PhotoImage(file="image/image1.gif")
+image2=PhotoImage(file="image/image2.gif")
+image3=PhotoImage(file="image/image3.gif")
+image4=PhotoImage(file="image/image4.gif")
+playbt=PhotoImage(file="image/start.gif")
+
+
+
+#frame1(게임 첫 화면)
+game_st=tk.Button(frame1,image=playbt,command = name_select)
+game_st.pack(padx=300,pady=500)
+
+#frame2(매칭방)
+input_nickname_bt=tk.Label(frame2,text="대기중...")
+input_nickname_bt.place(x = 315, y= 350)
+
+#frame3(대기방)
+#선택 이미지 표시
+select_char_can = tk.Label(frame3, width =150, height = 150)
+select_char_can.place(x=50, y=50)
+select_char_user=tk.Label(frame3, textvariable= my_name)
+select_char_user.place(x=70,y=10)
+select_anchar_user=tk.Label(frame3,textvariable= opp_name)
+select_anchar_user.place(x= 250,y=10)
+
+
+#캐릭터 선택 버튼
+char_select_br = tk.Button(frame3, text = "캐릭터 선택")
+char_select_br.place(x =200,y=660)
+#캐릭터 버튼 배치
+char_image1 = tk.Button(frame3,image=image1, width = 200, height = 200)
+char_image2 = tk.Button(frame3,image=image2, width = 200, height = 200)
+char_image3 = tk.Button(frame3,image=image3, width = 200, height = 200)
+char_image4 = tk.Button(frame3,image=image4, width = 200, height = 200)
+char_image1.place(x=25,y=240)
+char_image2.place(x=235,y=440)
+char_image3.place(x=25,y=440)
+char_image4.place(x=235,y=240)
+char_image1.bind('<Button>', character_select1)
+char_image2.bind('<Button>', character_select2)
+char_image3.bind('<Button>', character_select3)
+char_image4.bind('<Button>', character_select4)
+char_select_br.bind('<Button>', select_ok)
+
+
+#채팅 보여질 공간 (Label에서 Text로 변경)
+chat_space = tk.Text(frame3, width = 30, height =35)
+chat_space.place(x= 460, y=30)
+
+#채팅입력 하는곳
+chat_input = tk.Entry(frame3)
+# chat_input.bind("<Return>",chat_send)
+chat_input.place(x = 460, y = 500,width=155,height=22)
+
+#전송 버튼
+chat_br = tk.Button(frame3, text = " 전송 ", command = chat_send)
+chat_br.place(x =630,y=495)
+
+#가위바위보 게임시작 버튼
+chamcham_st_bt= tk.Button(frame3,image=playbt,command=lambda :openFrame(frame4))
+chamcham_st_bt.place(x=500,y=550)
+
+#나가기 버튼
+exit_bt = tk.Button(frame5, width =30, height = 30, bg= 'blue', command=quit)
+exit_bt.place(x = 550, y= 660)
+
+#대기방 돌아가기
+#exit_bt2 = tk.Button(frame5, width =30, height = 30, bg= 'pink', command= lambda :openFrame(frame3))
+#exit_bt2.place(x = 500, y= 600)
+
+your_name = ""
+opponent_name = ""
+game_round = 0
+game_timer = 4
+your_choice = ""
+opponent_choice = ""
+TOTAL_NO_OF_ROUNDS = 5
+your_score = 0
+opponent_score = 0
+
+# 네트워크 클라이언트
+client = None
+HOST_ADDR = ""
+# HOST_ADDR = "localhost"
+HOST_PORT = 8080
+
+top_message_frame = tk.Frame(frame4)
+lbl_line = tk.Label(
+    top_message_frame,
+    text="***********************************************************",
+).pack()
+lbl_welcome = tk.Label(top_message_frame, text="")
+lbl_welcome.pack()
+lbl_line_server = tk.Label(
+    top_message_frame,
+    text="***********************************************************",
+)
+lbl_line_server.pack_forget()
+top_message_frame.pack(side=tk.TOP)
+
+top_frame = tk.Frame(frame4)
+top_left_frame = tk.Frame(
+    top_frame, highlightbackground="green", highlightcolor="green", highlightthickness=1
+)
+lbl_your_name = tk.Label(
+    top_left_frame, text="당신의 닉네임: " + your_name, font="Helvetica 11 bold"
+)
+lbl_opponent_name = tk.Label(top_left_frame, text="상대방 닉네임: " + opponent_name)
+lbl_your_name.grid(row=0, column=0, padx=5, pady=8)
+lbl_opponent_name.grid(row=1, column=0, padx=5, pady=8)
+top_left_frame.pack(side=tk.LEFT, padx=(10, 10))
+
+
+top_right_frame = tk.Frame(
+    top_frame, highlightbackground="green", highlightcolor="green", highlightthickness=1
+)
+lbl_game_round = tk.Label(
+    top_right_frame,
+    text="Game round (x)",
+    foreground="blue",
+    font="Helvetica 14 bold",
+)
+lbl_timer = tk.Label(
+    top_right_frame, text=" ", font="Helvetica 24 bold", foreground="blue"
+)
+lbl_game_round.grid(row=0, column=0, padx=5, pady=5)
+lbl_timer.grid(row=1, column=0, padx=5, pady=5)
+top_right_frame.pack(side=tk.RIGHT, padx=(10, 10))
+
+top_frame.pack_forget()
+
+middle_frame = tk.Frame(frame4)
+
+lbl_line = tk.Label(
+    middle_frame, text="***********************************************************"
+).pack()
+lbl_line = tk.Label(
+    middle_frame, text="**** GAME LOG ****", font="Helvetica 13 bold", foreground="blue"
+).pack()
+lbl_line = tk.Label(
+    middle_frame, text="***********************************************************"
+).pack()
+
+round_frame = tk.Frame(middle_frame)
+lbl_round = tk.Label(round_frame, text="Round")
+lbl_round.pack()
+lbl_your_choice = tk.Label(
+    round_frame, text="당신의 선택: " + "None", font="Helvetica 13 bold"
+)
+lbl_your_choice.pack()
+lbl_opponent_choice = tk.Label(round_frame, text="상대방 선택: " + "None")
+lbl_opponent_choice.pack()
+lbl_result = tk.Label(
+    round_frame, text=" ", foreground="blue", font="Helvetica 14 bold"
+)
+lbl_result.pack()
+round_frame.pack(side=tk.TOP)
+
+final_frame = tk.Frame(middle_frame)
+lbl_line = tk.Label(
+    final_frame, text="***********************************************************"
+).pack()
+lbl_final_result = tk.Label(
+    final_frame, text=" ", font="Helvetica 13 bold", foreground="blue"
+)
+lbl_final_result.pack()
+lbl_line = tk.Label(
+    final_frame, text="***********************************************************"
+).pack()
+final_frame.pack(side=tk.TOP)
+
+middle_frame.pack_forget()
+
+button_frame = tk.Frame(frame4)
+button_frame.pack(side=tk.BOTTOM)
+photo_rock = PhotoImage(file="image/rock.gif")
+photo_paper = PhotoImage(file="image/paper.gif")
+photo_scissors = PhotoImage(file="image/scissors.gif")
+
+btn_rock = tk.Button(
+    frame4,
+    text="주먹",
+    command=lambda: choice("rock"),
+    state=tk.DISABLED,
+    image=photo_rock,
+)
+btn_paper = tk.Button(
+    frame4,
+    text="보",
+    command=lambda: choice("paper"),
+    state=tk.DISABLED,
+    image=photo_paper,
+)
+btn_scissors = tk.Button(
+    frame4,
+    text="가위",
+    command=lambda: choice("scissors"),
+    state=tk.DISABLED,
+    image=photo_scissors,
+)
+
+btn_rock.place(x=250, y=450)
+btn_paper.place(x=320, y=450)
+btn_scissors.place(x=390, y=450)
+
+openFrame(frame1)
+window.mainloop()

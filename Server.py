@@ -1,131 +1,171 @@
+# -*- coding: euc-kr -*-
+import tkinter as tk
 import socket
-from _thread import *
 import threading
-
-import sys
-
-server = "" #IPv4ì£¼ì†Œ: local host ì´ê±´ git í•  ë•Œ ì§€ìš°ê³  ì˜¬ë¦¬ê¸°. cmd->ipconfig ì—ì„œ í•˜ë©´ ë¨
-PORT = 60000
-
-#ì„œë²„ ì†Œì¼“ ìƒì„±
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-#ì„œë²„ì™€ í¬íŠ¸ ì—°ê²° / try, exceptë¥¼ ì´ìš©í•´ì„œ ì‹¤íŒ¨í–ˆì„ ê²½ìš° eê°€ ëœ° ì˜ˆì •
-try:
-    s.bind((server, PORT))
-
-except socket.error as e:
-    str(e)
-
-#ì„œë²„ì— ì ‘ì†í•  í´ë¼ì´ì–¸íŠ¸ ìˆ˜ ì œíŒí•˜ê³  ì‹¶ìœ¼ë©´ ()ì•ˆì— ìˆ˜ë§Œí¼ ì ìœ¼ë©´ ë¨
-s.listen() #ì›ë˜ëŠ” listen ìœ¼ë¡œ ìˆ˜ ì œí•œ ê°€ëŠ¥í•˜ë‹¤ê³  ë“¤ì—ˆëŠ”ë° ì•ˆë¨ -> clients ë¦¬ìŠ¤íŠ¸ ê¸¸ì´ë¡œ ì ‘ì† ê°€ëŠ¥ ìˆ˜ ì œí•œ í•˜ê¸°ë¡œ í•¨
-print('ì„œë²„ê°€ ì‹œì‘ë˜ì—ˆìŠµë‹ˆë‹¤. waiting for a connection')
+from time import sleep
 
 
+window = tk.Tk()
+window.title("Sever")
 
-##í´ë¼ì´ì–¸íŠ¸ ë§¤ì¹­ê¹Œì§€ ì™„ë£Œëœ ìƒíƒœ. í™”ë©´ ì „í™˜ í•„ìš”.
-#ëŒ€ê¸°í™”ë©´ì´ë¼ê³  ê°„ì£¼.
+# µÎ °³ÀÇ ¹öÆ° À§Á¬À¸·Î ±¸¼ºµÈ »ó´Ü ÇÁ·¹ÀÓ (¿¹: btnStart, btnStop)
+topFrame = tk.Frame(window)
+btnStart = tk.Button(topFrame, text="Start", command=lambda : start_server())
+btnStart.pack(side=tk.LEFT)
+btnStop = tk.Button(topFrame, text="Stop", command=lambda : stop_server(), state=tk.DISABLED)
+btnStop.pack(side=tk.LEFT)
+topFrame.pack(side=tk.TOP, pady=(5, 0))
 
-#ì±„íŒ… ê¸°ëŠ¥ ìƒì„±
-clients = [] #ì±„íŒ… ì ‘ì†í•˜ë©´ ì—¬ê¸°ë¡œ addr ì €ì¥ë¨
-nicknames = [] #ë‹‰ë„¤ì„ë„ ì—¬ê¸°ë¡œ ê°™ì€ ìˆœì„œë¡œ ì €ì¥ë¨
+# È£½ºÆ® ¹× Æ÷Æ® Á¤º¸¸¦ Ç¥½ÃÇÏ±â À§ÇÑ µÎ °³ÀÇ ·¹ÀÌºí·Î ±¸¼ºµÈ Áß°£ ÇÁ·¹ÀÓ
+middleFrame = tk.Frame(window)
+lblHost = tk.Label(middleFrame, text = "Address: X.X.X.X")
+lblHost.pack(side=tk.LEFT)
+lblPort = tk.Label(middleFrame, text = "Port:XXXX")
+lblPort.pack(side=tk.LEFT)
+middleFrame.pack(side=tk.TOP, pady=(5, 0))
 
-# def limit_client():
-#     if len(clients) > 3:
-#         client.close()
+# Å¬¶óÀÌ¾ğÆ® ¿µ¿ª
+clientFrame = tk.Frame(window)
+lblLine = tk.Label(clientFrame, text="**********Client List**********").pack()
+scrollBar = tk.Scrollbar(clientFrame)
+scrollBar.pack(side=tk.RIGHT, fill=tk.Y)
+tkDisplay = tk.Text(clientFrame, height=10, width=30)
+tkDisplay.pack(side=tk.LEFT, fill=tk.Y, padx=(5, 0))
+scrollBar.config(command=tkDisplay.yview)
+tkDisplay.config(yscrollcommand=scrollBar.set, background="#F4F6F7", highlightbackground="grey", state="disabled")
+clientFrame.pack(side=tk.BOTTOM, pady=(5, 10))
 
-def broadcast(message): #ëª¨ë“  client ì—ê²Œë¡œ ë©”ì‹œì§€ ì „ì†¡
-    for client in clients:
-        client.send(message)
 
-def handle(client):
+server = None
+HOST_ADDR = ""
+HOST_PORT = 8080
+client_name = " "
+clients = []
+clients_names = []
+player_data = []
+
+
+# ¼­¹ö ±â´É ½ÃÀÛ
+def start_server():
+    global server, HOST_ADDR, HOST_PORT
+    btnStart.config(state=tk.DISABLED)
+    btnStop.config(state=tk.NORMAL)
+
+    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    print(socket.AF_INET)
+    print(socket.SOCK_STREAM)
+
+    server.bind((HOST_ADDR, HOST_PORT))
+    server.listen(2) ##2¸í¸¸ Á¢¼Ó °¡´ÉÇÑ °Å È®ÀÎ ¿Ï·á
+
+
+    threading._start_new_thread(accept_clients, (server, " "))
+
+    lblHost["text"] = "Address: " + HOST_ADDR
+    lblPort["text"] = "Port: " + str(HOST_PORT)
+
+
+# ¼­¹ö ±â´É ÁßÁö
+def stop_server():
+    global server
+    btnStart.config(state=tk.NORMAL)
+    btnStop.config(state=tk.DISABLED)
+
+
+def accept_clients(the_server, y):
     while True:
-        try:
-            message = client.recv(1024)
-            broadcast(message)
-        except:
-            #clientì˜ ì ‘ì†ì´ ì¢…ë£Œëœ ê²ƒìœ¼ë¡œ ê°„ì£¼. í´ë¼ì´ì–¸íŠ¸ê°€ ì €ì¥ëœ ì¸ë±ìŠ¤ë¥¼ ì°¾ì•„ì„œ ë¦¬ìŠ¤íŠ¸ì—ì„œ ê°ê° ì‚­ì œ í›„ í´ë¼ì´ì–¸íŠ¸ ì ‘ì† ì¢…ë£Œ ì‹œí‚´.
-            #ì´ ê²½ìš°, ë‚¨ì€ í´ë¼ì´ì–¸íŠ¸ëŠ” ê³„ì† ì„œë²„ì— ì ‘ì†ëœ ìƒíƒœë¡œ ë‚¨ì•„ ìˆìŒ.. ìƒˆë¡œìš´ í´ë¼ì´ì–¸íŠ¸ê°€ ì ‘ì†í•  ë•Œê¹Œì§€ ëŒ€ê¸°.
-            index = clients.index(client)
-            clients.remove(client)
-            client.close()
-            nickname = nicknames[index]
-            broadcast(f'{nickname} left the chat!'.encode('ascii'))
-            nicknames.remove(nickname)
-            break
+        if len(clients) < 2:
+            client, addr = the_server.accept()
+            clients.append(client)
+            print('clients: ', clients)
+            print('client: ', client)
+
+            # GUI ½º·¹µå ¸·È÷Áö ¾Êµµ·Ï ½º·¹µå »ç¿ë
+            threading._start_new_thread(send_receive_client_message, (client, addr))
 
 
+# ÇöÀç Å¬¶óÀÌ¾ğÆ®·ÎºÎÅÍ ¸Ş½ÃÁö¸¦ ¹Ş´Â ÇÔ¼ö AND
+# ÇØ´ç ¸Ş½ÃÁö¸¦ ´Ù¸¥ Å¬¶óÀÌ¾ğÆ®¿¡°Ô º¸³¿
+def send_receive_client_message(client_connection, client_ip_addr):
+    global server, client_name, clients, player_data, player0, player1
+    client_msg = " "
+    # Å¬¶óÀÌ¾ğÆ®¿¡°Ô È¯¿µ ¸Ş¼¼Áö º¸³»±â
+    client_name = client_connection.recv(4096)
+    if len(clients) < 2:
+        client_connection.send("welcome1".encode())
+    else:
+        client_connection.send("welcome2".encode())
 
-def receive():
+    clients_names.append(client_name)
+    update_client_names_display(clients_names)  # ¾÷µ¥ÀÌÆ® µÈ Å¬¶óÀÌ¾ğÆ® ÀÌ¸§ ³ªÅ¸³²
+
+    if len(clients) > 1:
+        print("matched 2")
+        sleep(1)
+
+        # »ó´ë¹æ ÀÌ¸§ º¸³»±â
+        clients[0].send("opponent_name$".encode() + clients_names[1])
+        clients[1].send("opponent_name$".encode() + clients_names[0])
+
+
     while True:
-        if len(clients) < 3: #ì ‘ì† ê°€ëŠ¥í•œ í´ë¼ì´ì–¸íŠ¸ ìˆ˜ 2ë¡œ ì œí•œ
-            client, address = s.accept() #í´ë¼ì´ì–¸íŠ¸ì˜ ì ‘ì† í—ˆìš©
-            print(f'connected with {str(address)}')
+        data = client_connection.recv(4096).decode()
+        if not data: break
+
+        if data.startswith("message"):
+            print('message received: ', data)
+            # client_connection.sendall(data.encode())
+            for client in clients:
+                client.send(data.encode())
+                print('server sended a message to ', client)
         else:
-            client.send('room full'.encode('ascii'))
+            # ¼ö½ÅµÈ µ¥ÀÌÅÍ¿¡¼­ ÇÃ·¹ÀÌ¾î ¼±ÅÃ
+            player_choice = data[11:len(data)]
 
-        #ì—¬ê¸°ê¹Œì§€ëŠ” ë¬¸ì œ ì—†ìŒ.
-        client.send('NICK'.encode('ascii')) #ì²˜ìŒ - í´ë¼ì´ì–¸íŠ¸ì—ê²Œ í´ë¼ì´ì–¸íŠ¸ ë‹‰ë„¤ì„ ì •ë³´ ë°›ê¸° ìœ„í•´ì„œ NICK ì „ì†¡
-        #NICKì„ ì „ì†¡í•˜ëŠ” ê²ƒì´ ë¨¼ì €.
-        nickname = client.recv(1024).decode('ascii') #í´ë¼ì´ì–¸íŠ¸ê°€ ë‹‰ë„¤ì„ì„ ë³´ë‚´ì˜¤ë©´
-        #í´ë¼ì´ì–¸íŠ¸ê°€ ë‹‰ë„¤ì„ ë°›ìŒ.ë°›ìœ¼ë©´ì„œ ì¶©ëŒí•˜ë©´ì„œ ìƒê¸°ëŠ” ë¬¸ì œ.
-        nicknames.append(nickname) #ë‹‰ë„¤ì„ ë¦¬ìŠ¤íŠ¸ì— ì €ì¥
-        clients.append(client) #í´ë¼ì´ì–¸íŠ¸ëŠ” í´ë¼ì´ì–¸íŠ¸ ë¦¬ìŠ¤íŠ¸ì— ì €ì¥
+            msg = {
+                "choice": player_choice,
+                "socket": client_connection
+            }
 
-        print(f'nickname of the client is {nickname}')
-        broadcast(f'{nickname} joined the chat!'.encode('ascii')) #ì ‘ì†í•œ í´ë¼ì´ì–¸íŠ¸ ëª¨ë‘ì—ê²Œ í´ë¼ì´ì–¸íŠ¸ê°€ ì ‘ì†í–ˆìŒì„ broadcast
-        client.send("connected to the server".encode('ascii')) #ì ‘ì†í•œ í´ë¼ì´ì–¸íŠ¸ì—ê²ŒëŠ” ì„œë²„ì— ì ‘ì† ë˜ì—ˆìŒì„ ì „ì†¡
+            if len(player_data) < 2:
+                player_data.append(msg)
 
-        thread = threading.Thread(target=handle, args=(client,))#handle ìŠ¤ë ˆë“œ(ìˆœìˆ˜ ì±„íŒ… ê¸°ëŠ¥) ì‹œì‘
-        thread.start()
+            if len(player_data) == 2:
+                # ÇÃ·¹ÀÌ¾î ¼±ÅÃÀ» ´Ù¸¥ ÇÃ·¹ÀÌ¾î¿¡°Ô º¸³¿
+                player_data[0].get("socket").send("$opponent_choice".encode() + player_data[1].get("choice"))
+                player_data[1].get("socket").send("$opponent_choice".encode() + player_data[0].get("choice"))
 
-        # thread = threading.Thread(target=limit_client, args=(client,))  # handle ìŠ¤ë ˆë“œ(ìˆœìˆ˜ ì±„íŒ… ê¸°ëŠ¥) ì‹œì‘
-        # thread.start()
+                player_data = []
 
 
+    # Å¬¶óÀÌ¾ğÆ® ÀÎµ¦½º¸¦ Ã£°í ÀÌ¸§, ¿¬°á ¸ñ·Ï¿¡¼­ Á¦°Å
+    idx = get_client_index(clients, client_connection)
+    del clients_names[idx]
+    del clients[idx]
+    client_connection.close()
 
-#ëŒ€ê¸°í™”ë©´ - ì±„íŒ… ê¸°ëŠ¥ ì‹œì‘.
-receive()
+    update_client_names_display(clients_names)  # Å¬¶óÀÌ¾ğÆ® ÀÌ¸§ Ç¥½Ã ¾÷µ¥ÀÌÆ®
+
+# Å¬¶óÀÌ¾ğÆ® ¸ñ·Ï¿¡¼­ ÇöÀç Å¬¶óÀÌ¾ğÆ®ÀÇ ÀÎµ¦½º ¹İÈ¯
+def get_client_index(client_list, curr_client):
+    idx = 0
+    for conn in client_list:
+        if conn == curr_client:
+            break
+        idx = idx + 1
+
+    return idx
 
 
+# »õ Å¬¶óÀÌ¾ğÆ®°¡ ¿¬°áÇÒ ¶§ Å¬¶óÀÌ¾ğÆ® ÀÌ¸§ Ç¥½Ã ¶Ç´Â ¾÷µ¥ÀÌÆ®
+# ¿¬°áµÈ Å¬¶óÀÌ¾ğÆ®ÀÇ ¿¬°áÀÌ ²÷°åÀ» ¶§
+def update_client_names_display(name_list):
+    tkDisplay.config(state=tk.NORMAL)
+    tkDisplay.delete('1.0', tk.END)
+
+    for c in name_list:
+        tkDisplay.insert(tk.END, c+b"\n")
+    tkDisplay.config(state=tk.DISABLED)
 
 
-
-#ë‚˜ì¤‘ì— ê²Œì„í•  ë•Œ í•„ìš”í•˜ë©´ ì‚¬ìš©í•˜ê¸°.
-# #ì„œë²„ì™€ í´ë¼ì´ì–¸íŠ¸ ê·¸ëƒ¥ ì—°ê²°
-# def threaded_client(conn):
-#     conn.send(str.encode("Connected")) #ì—°ê²°ëœ ìƒíƒœ
-#     reply = "" #ipv4
-#     #curi = "net?" #ë³´ë‚´ëŠ” replyê°€ network.pyì—ì„œ ì–´ë–»ê²Œ ëœ¨ëŠ”ì§€ í™•ì¸í•˜ê³  ì‹¶ì—ˆìŒ.
-#     while True: #ì´ í•¨ìˆ˜ê°€ í´ë¼ì´ì–¸íŠ¸ê°€ ì—°ê²° ë˜ì–´ìˆì„ ë•Œë„ ê³„ì† ë¬´í•œíˆ ë°ì´í„°ë¥¼ ë°›ìœ¼ë©´ì„œ ì‘ë™ í•´ì•¼ í•˜ê¸°ì—
-#         try:
-#             data = conn.recv(2048) #ë°›ìœ¼ë ¤ëŠ” ë°ì´í„° ì–‘ 2048 bit ìˆ˜. ì—ëŸ¬ ëœ¨ë©´ ì´ê±° ì‚¬ì´ì¦ˆ í‚¤ìš°ê¸°/ë°ì´í„°ë¥¼ ë°›ê¸° ì „ê¹Œì§€ ë³´ë‚´ì§€ X
-#             reply = data.decode("utf-8") #ë°›ì€ dataëŠ” ìš°ë¦¬ê°€ ì½ì„ ìˆ˜ ìˆê²Œ utf-8ë¡œ ë³€ê²½
-#
-#             if not data: #dataë¥¼ ë°›ì§€ ì•Šìœ¼ë©´ ì—°ê²° í•´ì œ
-#                 print("Disconnected")
-#                 break
-#             else: #data ë°›ì€ ê²½ìš°,
-#                 print("Received: ", reply)
-#                 print("Sending : ", reply)
-#
-#             conn.sendall(str.encode(reply)) #ì •ë³´ë¥¼ ë³´ë‚¼ ë–„ bitë¡œ ë³€ê²½í•´ì„œ ì „ì†¡
-#         except:
-#             print("threaded_client error")
-#             break
-#
-#     print("Lost connection")
-#     conn.close()
-#
-# #conn, addr = s.accept()
-#
-# currentClient = 0
-# #ê³„ì†í•´ì„œ í´ë¼ì´ì–¸íŠ¸ì˜ ìš”ì²­ì„ ê¸°ë‹¤ë¦¬ëŠ” ìƒíƒœ
-# #connectionê³¼ ê·¸ê²ƒì˜ IP ì£¼ì†Œ(addr)
-#
-# while True:
-#     conn, addr = s.accept()
-#     print("Connected to:", addr) #clientë¡œ ë¶€í„° ì£¼ì†Œë¥¼ ë°›ê³  ì—°ê²°ëœ ìƒíƒœ.
-#
-#     start_new_thread(threaded_client, (conn, currentClient))
-#     currentClient += 1# ì—°ê²°ëœ í´ë¼ì´ì–¸íŠ¸ ìˆ˜ë¥¼ ì¸¡ì •í•˜ê¸° ìœ„í•¨
+window.mainloop()
