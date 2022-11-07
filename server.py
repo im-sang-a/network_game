@@ -43,7 +43,7 @@ client_name = " "
 clients = []
 clients_names = []
 player_data = []
-
+ready_data=[]
 
 # 서버 기능 시작
 def start_server():
@@ -119,8 +119,13 @@ def send_receive_client_message(client_connection, client_ip_addr):
                 client.send(data.encode())
                 print('server sended a message to ', client)
 
-        # elif data.startswith("start"):
-        #     client.send
+        elif data.startswith("start"):
+            if len(ready_data)<2:
+                ready_data.append("start")
+                print("plus")
+            if len(ready_data)==2:
+                for client in clients:
+                    client.send("start".encode())
 
         else:
             # 수신된 데이터에서 플레이어 선택
