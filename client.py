@@ -174,17 +174,15 @@ def receive_message_from_server(sck, m): #매칭
                     " 환영합니다! " + your_name + "님 상대방을 기다려주세요."
                 )
             lbl_line_server.pack()
-
         elif from_server.startswith("opponent_name$"):
-            #이것도 바꿔야 함(상대방까지 매칭 완료된 상황)
+            # 이것도 바꿔야 함(상대방까지 매칭 완료된 상황)
             opponent_name = from_server.replace("opponent_name$", "")
+            select_anchar_user = tk.Label(frame3, text=opponent_name)
+            select_anchar_user.place(x=250, y=10)
             lbl_opponent_name["text"] = "상대방 닉네임: " + opponent_name
-            # top_frame.pack()
-            # middle_frame.pack()
-            openFrame(frame3)
-
-            # 두 명의 사용자 연결되어 게임 시작 준비 완료
-            # threading._start_new_thread(count_down, (game_timer, ""))
+            opp_name = str(opponent_name)
+            top_frame.pack()
+            middle_frame.pack()
             lbl_welcome.config(state=tk.DISABLED)
             lbl_line_server.config(state=tk.DISABLED)
 
@@ -332,9 +330,6 @@ select_char_can = tk.Label(frame3, width =150, height = 150)
 select_char_can.place(x=50, y=50)
 select_char_user=tk.Label(frame3, textvariable= my_name)
 select_char_user.place(x=70,y=10)
-select_anchar_user=tk.Label(frame3,textvariable= opp_name)
-select_anchar_user.place(x= 250,y=10)
-
 
 #캐릭터 선택 버튼
 char_select_br = tk.Button(frame3, text = "캐릭터 선택")
