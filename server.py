@@ -56,7 +56,8 @@ def start_server():
     print(socket.SOCK_STREAM)
 
     server.bind((HOST_ADDR, HOST_PORT))
-    server.listen(5)
+    server.listen(2) ##2명만 접속 가능한 거 확인 완료
+
 
     threading._start_new_thread(accept_clients, (server, " "))
 
@@ -76,17 +77,18 @@ def accept_clients(the_server, y):
         if len(clients) < 2:
             client, addr = the_server.accept()
             clients.append(client)
+            print('clients: ', clients)
+            print('client: ', client)
 
             # GUI 스레드 막히지 않도록 스레드 사용
             threading._start_new_thread(send_receive_client_message, (client, addr))
+
 
 # 현재 클라이언트로부터 메시지를 받는 함수 AND
 # 해당 메시지를 다른 클라이언트에게 보냄
 def send_receive_client_message(client_connection, client_ip_addr):
     global server, client_name, clients, player_data, player0, player1
-
     client_msg = " "
-
     # 클라이언트에게 환영 메세지 보내기
     client_name = client_connection.recv(4096)
     if len(clients) < 2:
@@ -98,34 +100,47 @@ def send_receive_client_message(client_connection, client_ip_addr):
     update_client_names_display(clients_names)  # 업데이트 된 클라이언트 이름 나타남
 
     if len(clients) > 1:
+        print("matched 2")
         sleep(1)
 
         # 상대방 이름 보내기
         clients[0].send("opponent_name$".encode() + clients_names[1])
         clients[1].send("opponent_name$".encode() + clients_names[0])
-        # 대기
+
 
     while True:
-        data = client_connection.recv(4096)
+        data = client_connection.recv(4096).decode()
         if not data: break
 
-        # 수신된 데이터에서 플레이어 선택
-        player_choice = data[11:len(data)]
+        if data.startswith("message"):
+            print('message received: ', data)
+            # client_connection.sendall(data.encode())
+            for client in clients:
+                client.send(data.encode())
+                print('server sended a message to ', client)
 
-        msg = {
-            "choice": player_choice,
-            "socket": client_connection
-        }
+        # elif data.startswith("start"):
+        #     client.send
 
-        if len(player_data) < 2:
-            player_data.append(msg)
+        else:
+            # 수신된 데이터에서 플레이어 선택
+            player_choice = data[11:len(data)]
 
-        if len(player_data) == 2:
-            # 플레이어 선택을 다른 플레이어에게 보냄
-            player_data[0].get("socket").send("$opponent_choice".encode() + player_data[1].get("choice"))
-            player_data[1].get("socket").send("$opponent_choice".encode() + player_data[0].get("choice"))
+            msg = {
+                "choice": player_choice,
+                "socket": client_connection
+            }
 
-            player_data = []
+            if len(player_data) < 2:
+                player_data.append(msg)
+
+            if len(player_data) == 2:
+                # 플레이어 선택을 다른 플레이어에게 보냄
+                player_data[0].get("socket").send("$opponent_choice".encode() + player_data[1].get("choice").encode())
+                player_data[1].get("socket").send("$opponent_choice".encode() + player_data[0].get("choice").encode())
+
+                player_data = []
+
 
     # 클라이언트 인덱스를 찾고 이름, 연결 목록에서 제거
     idx = get_client_index(clients, client_connection)
