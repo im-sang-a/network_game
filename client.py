@@ -185,6 +185,7 @@ def receive_message_from_server(sck, m): #매칭
             middle_frame.pack()
             lbl_welcome.config(state=tk.DISABLED)
             lbl_line_server.config(state=tk.DISABLED)
+            openFrame(frame3)
 
         #########################수정
         elif from_server.startswith("message"):
@@ -290,11 +291,11 @@ my_name = StringVar()
 opp_name = StringVar()
 
 #프레임 정의
-frame1=tkinter.Frame(window) #기본 프레임
-frame2=tkinter.Frame(window) #닉네임 정하고 매칭 시작후 방 들어가는 화면
-frame3=tkinter.Frame(window) #대기방
-frame4=tkinter.Frame(window) #가위바위보 창
-frame5=tkinter.Frame(window) #참참참 게임
+frame1=tkinter.Frame(window,bg='white') #기본 프레임
+frame2=tkinter.Frame(window,bg='white') #닉네임 정하고 매칭 시작후 방 들어가는 화면
+frame3=tkinter.Frame(window,bg='white') #대기방
+frame4=tkinter.Frame(window,bg='white') #가위바위보 창
+frame5=tkinter.Frame(window,bg='white') #참참참 게임
 frame1.grid(row=0, column=0, sticky="nsew")
 frame2.grid(row=0, column=0, sticky="nsew")
 frame3.grid(row=0, column=0, sticky="nsew")
