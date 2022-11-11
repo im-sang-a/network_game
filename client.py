@@ -8,12 +8,10 @@ from threading import Thread
 from time import sleep
 from tkinter import *
 from tkinter import PhotoImage
-# from PIL import ImageTk,Image
 
 #새로운 프레임 띄우기
 def openFrame(frame):
     frame.tkraise()
-
 
 def name_select():
     result = tkinter.simpledialog.askstring("제목", "닉네임을 입력하세요")
@@ -28,7 +26,6 @@ def name_select():
     else:
         lbl_your_name["text"] = "당신의 닉네임: " + your_name
         connect_to_server(your_name)
-
 
 
 #이미지선택
@@ -177,8 +174,8 @@ def receive_message_from_server(sck, m): #매칭
         elif from_server.startswith("opponent_name$"):
             # 이것도 바꿔야 함(상대방까지 매칭 완료된 상황)
             opponent_name = from_server.replace("opponent_name$", "")
-            select_anchar_user = tk.Label(frame3, text=opponent_name)
-            select_anchar_user.place(x=250, y=10)
+            select_anchar_user = tk.Label(frame3, text=opponent_name,bg="white",bd=0)
+            select_anchar_user.place(x=300, y=13)
             lbl_opponent_name["text"] = "상대방 닉네임: " + opponent_name
             opp_name = str(opponent_name)
             top_frame.pack()
@@ -309,32 +306,45 @@ image2=PhotoImage(file="image/image2.gif")
 image3=PhotoImage(file="image/image3.gif")
 image4=PhotoImage(file="image/image4.gif")
 playbt=PhotoImage(file="image/start.gif")
-quitbt=PhotoImage(file="image/quit.gif")
 photo_rock = PhotoImage(file="image/rock.gif")
 photo_paper = PhotoImage(file="image/paper.gif")
 photo_scissors = PhotoImage(file="image/scissors.gif")
 win_img=PhotoImage(file="image/win.gif")
 lose_img=PhotoImage(file="image/lose.gif")
 draw_img=PhotoImage(file="image/draw.gif")
+startbg=PhotoImage(file="image/startbg.gif")
+treebg=PhotoImage(file="image/tree.gif")
+waitbg=PhotoImage(file="image/waiting.gif")
+select_ch=PhotoImage(file="image/select_ch.gif")
+me=PhotoImage(file="image/me.gif")
+you=PhotoImage(file="image/you.gif")
 
 #frame1(게임 첫 화면)
-game_st=tk.Button(frame1,image=playbt,command = name_select)
-game_st.pack(padx=300,pady=500)
+start_bg = tk.Label(frame1,image=startbg,bd=0)
+start_bg.place(x=0, y=0)
+game_st=tk.Button(frame1,image=playbt,bd=0,command = name_select)
+game_st.pack(padx=250,pady=400)
+tree_bg=tk.Label(frame1,image=treebg,bd=0)
+tree_bg.place(x=0,y=550)
 
 #frame2(매칭방)
-input_nickname_bt=tk.Label(frame2,text="대기중...")
-input_nickname_bt.place(x = 315, y= 350)
+input_nickname_bt=tk.Label(frame2,image=waitbg)
+input_nickname_bt.place(x = 0, y= 0)
 
 #frame3(대기방)
 #선택 이미지 표시
-select_char_can = tk.Label(frame3, width =150, height = 150)
+select_char_can = tk.Label(frame3, width =150, height = 150,bg="white",bd=0)
 select_char_can.place(x=50, y=50)
-select_char_user=tk.Label(frame3, textvariable= my_name)
-select_char_user.place(x=70,y=10)
+select_ch_lb=tk.Label(frame3,image=me,bd=0)
+select_ch_lb.place(x=20,y=10)
+select_char_user=tk.Label(frame3, textvariable= my_name,bg="white",bd=0)
+select_char_user.place(x=60,y=13)
+select_ch_you_lb=tk.Label(frame3,image=you,bd=0)
+select_ch_you_lb.place(x=250,y=13)
 
 #캐릭터 선택 버튼
-char_select_br = tk.Button(frame3, text = "캐릭터 선택")
-char_select_br.place(x =200,y=660)
+char_select_br = tk.Button(frame3,image=select_ch,bd=1)
+char_select_br.place(x =200,y=650)
 #캐릭터 버튼 배치
 char_image1 = tk.Button(frame3,image=image1, width = 200, height = 200)
 char_image2 = tk.Button(frame3,image=image2, width = 200, height = 200)
@@ -361,16 +371,12 @@ chat_input = tk.Entry(frame3)
 chat_input.place(x = 460, y = 500,width=155,height=22)
 
 #전송 버튼
-chat_br = tk.Button(frame3, text = " 전송 ", command = chat_send)
+chat_br = tk.Button(frame3, text=" 전송 ", command = chat_send)
 chat_br.place(x =630,y=495)
 
 #가위바위보 게임시작 버튼
-gamest_bt= tk.Button(frame3,image=playbt,command=gameready)
-gamest_bt.place(x=500,y=550)
-
-#나가기 버튼
-exit_bt = tk.Button(frame5, image=quitbt, command=quit)
-exit_bt.place(x = 550, y= 660)
+gamest_bt= tk.Button(frame3,image=playbt,command=gameready,bd=0)
+gamest_bt.place(x=480,y=550)
 
 your_name = ""
 opponent_name = ""
