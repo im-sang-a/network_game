@@ -9,6 +9,7 @@ from time import sleep
 from tkinter import *
 from tkinter import PhotoImage
 
+
 #새로운 프레임 띄우기
 def openFrame(frame):
     frame.tkraise()
@@ -100,6 +101,11 @@ def count_down(my_timer, nothing):
         game_round = game_round + 1
 
     lbl_game_round["text"] = "Game " + str(game_round) + " round 가 시작되었습니다."
+    game_lb = tk.Label(top_left_frame, image = game)
+    #round_start_lb = tk.Label(image =  round_start)
+    #game_lb.place(x = 285,  y  = 65)
+    #round_start_lb.place(x = 370, y = 60)
+    lbl_game_round["text"] = "Game " + str(game_round) + " round 가 시작되었습니다."
 
     while my_timer > 0:
         my_timer = my_timer - 1
@@ -163,14 +169,18 @@ def receive_message_from_server(sck, m): #매칭
             #이걸 바꿔야 함. 안에 if문들
             if from_server == "welcome1":
                 lbl_welcome["text"] = (
-                    " 환영합니다! " + your_name + "님 상대방을 기다려주세요."
+                    " 환영합니다! " + your_name + " 님 상대방을 기다려주세요."
                 )
             elif from_server == "welcome2":
             #이것도 바꿔야 함.
                 lbl_welcome["text"] = (
-                    " 환영합니다! " + your_name + "님 상대방을 기다려주세요."
+                    " 환영합니다! " + your_name + " 님 상대방을 기다려주세요."
                 )
             lbl_line_server.pack()
+            #wait_lb = tk.Label(frame4, image=wait_img)
+            #wait_lb.place(x=332, y=20)
+
+
         elif from_server.startswith("opponent_name$"):
             # 이것도 바꿔야 함(상대방까지 매칭 완료된 상황)
             opponent_name = from_server.replace("opponent_name$", "")
@@ -280,7 +290,7 @@ def gamestart():
 
 '**************************게임창 띄우기******************************'
 window=tkinter.Tk()
-window.title("참참참 게임")
+window.title("가위바위보 게임")
 window.geometry("700x700")
 
 global my_name, opp_name
@@ -318,6 +328,15 @@ waitbg=PhotoImage(file="image/waiting.gif")
 select_ch=PhotoImage(file="image/select_ch.gif")
 me=PhotoImage(file="image/me.gif")
 you=PhotoImage(file="image/you.gif")
+your_nick = PhotoImage(file="image/your_nick.gif")
+opp_nick = PhotoImage(file = "image/opp_nick.gif")
+game_log = PhotoImage(file = "image/game_log.gif")
+game=PhotoImage(file = "image/game.gif")
+round_start = PhotoImage(file = "image/round_start.gif")
+animals_img = PhotoImage(file = "image/animals.gif")
+wait_img = PhotoImage(file = "image/wait_please.gif")
+welcome_img = PhotoImage(file = "image/welcome.gif")
+
 
 #frame1(게임 첫 화면)
 start_bg = tk.Label(frame1,image=startbg,bd=0)
@@ -390,48 +409,58 @@ opponent_score = 0
 
 # 네트워크 클라이언트
 client = None
-HOST_ADDR = "192.168.16.1"
+HOST_ADDR = "localhost"
 # HOST_ADDR = "localhost"
 HOST_PORT = 8080
 
-top_message_frame = tk.Frame(frame4)
+
+animals_lb = tk.Label(frame4, image = animals_img, bd = 0)
+animals_lb.place(x=0,y=537)
+
+
+tree_bg=tk.Label(frame1,image=treebg,bd=0)
+tree_bg.place(x=0,y=550)
+top_message_frame = tk.Frame(frame4,bg='white')
+
 lbl_line = tk.Label(
     top_message_frame,
-    text="***********************************************************",
+    text="***********************************************************",bg='white'
 ).pack()
-lbl_welcome = tk.Label(top_message_frame, text="")
+lbl_welcome = tk.Label(top_message_frame, text="",bg='white')
 lbl_welcome.pack()
 lbl_line_server = tk.Label(
     top_message_frame,
-    text="***********************************************************",
+    text="***********************************************************",bg='white'
 )
 lbl_line_server.pack_forget()
 top_message_frame.pack(side=tk.TOP)
 
-top_frame = tk.Frame(frame4)
+
+top_frame = tk.Frame(frame4, bg = "white")
 top_left_frame = tk.Frame(
-    top_frame, highlightbackground="green", highlightcolor="green", highlightthickness=1
+    top_frame, highlightbackground="green", highlightcolor="green", highlightthickness=1,bg= "white"
 )
 lbl_your_name = tk.Label(
-    top_left_frame, text="당신의 닉네임: " + your_name, font="Helvetica 11 bold"
+    top_left_frame, text="당신의 닉네임 " + your_name, font="Helvetica 11 bold", bg="white"
 )
-lbl_opponent_name = tk.Label(top_left_frame, text="상대방 닉네임: " + opponent_name)
+
+lbl_opponent_name = tk.Label(top_left_frame, text="상대방 닉네임 " + opponent_name, bg='white')
 lbl_your_name.grid(row=0, column=0, padx=5, pady=8)
 lbl_opponent_name.grid(row=1, column=0, padx=5, pady=8)
 top_left_frame.pack(side=tk.LEFT, padx=(10, 10))
 
 
 top_right_frame = tk.Frame(
-    top_frame, highlightbackground="green", highlightcolor="green", highlightthickness=1
+    top_frame, highlightbackground="green", highlightcolor="green", highlightthickness=1, bg = 'white'
 )
 lbl_game_round = tk.Label(
     top_right_frame,
     text="Game round (x)",
     foreground="blue",
-    font="Helvetica 14 bold",
+    font="Helvetica 14 bold", bg = 'white'
 )
 lbl_timer = tk.Label(
-    top_right_frame, text=" ", font="Helvetica 24 bold", foreground="blue"
+    top_right_frame, text=" ", font="Helvetica 24 bold", foreground="blue", bg = 'white'
 )
 lbl_game_round.grid(row=0, column=0, padx=5, pady=5)
 lbl_timer.grid(row=1, column=0, padx=5, pady=5)
@@ -439,49 +468,51 @@ top_right_frame.pack(side=tk.RIGHT, padx=(10, 10))
 
 top_frame.pack_forget()
 
-middle_frame = tk.Frame(frame4)
+middle_frame = tk.Frame(frame4,bg='white')
 
 lbl_line = tk.Label(
-    middle_frame, text="***********************************************************"
+    middle_frame, text="***********************************************************",bg='white'
 ).pack()
 lbl_line = tk.Label(
-    middle_frame, text="**** GAME LOG ****", font="Helvetica 13 bold", foreground="blue"
-).pack()
-lbl_line = tk.Label(
-    middle_frame, text="***********************************************************"
+    middle_frame, text="**** GAME LOG ****", font="Helvetica 13 bold", foreground="blue", bg= 'white'
 ).pack()
 
-round_frame = tk.Frame(middle_frame)
-lbl_round = tk.Label(round_frame, text="Round")
+
+lbl_line = tk.Label(
+    middle_frame, text="***********************************************************",bg='white'
+).pack()
+
+round_frame = tk.Frame(middle_frame,bg='white')
+lbl_round = tk.Label(round_frame, text="Round",bg='white')
 lbl_round.pack()
 lbl_your_choice = tk.Label(
-    round_frame, text="당신의 선택: " + "None", font="Helvetica 13 bold"
+    round_frame, text="당신의 선택: " + "None", font="Helvetica 13 bold",bg='white'
 )
 lbl_your_choice.pack()
-lbl_opponent_choice = tk.Label(round_frame, text="상대방 선택: " + "None")
+lbl_opponent_choice = tk.Label(round_frame, text="상대방 선택: " + "None",bg='white')
 lbl_opponent_choice.pack()
 lbl_result = tk.Label(
-    round_frame, text=" ", foreground="blue", font="Helvetica 14 bold"
+    round_frame, text=" ", foreground="blue", font="Helvetica 14 bold",bg='white'
 )
 lbl_result.pack()
 round_frame.pack(side=tk.TOP)
 
-final_frame = tk.Frame(middle_frame)
+final_frame = tk.Frame(middle_frame,bg='white')
 lbl_line = tk.Label(
-    final_frame, text="***********************************************************"
+    final_frame, text="***********************************************************",bg='white'
 ).pack()
 lbl_final_result = tk.Label(
-    final_frame, text=" ", font="Helvetica 13 bold", foreground="blue"
+    final_frame, text=" ", font="Helvetica 13 bold", foreground="blue",bg='white'
 )
 lbl_final_result.pack()
 lbl_line = tk.Label(
-    final_frame, text="***********************************************************"
+    final_frame, text="***********************************************************",bg='white'
 ).pack()
 final_frame.pack(side=tk.TOP)
 
 middle_frame.pack_forget()
 
-button_frame = tk.Frame(frame4)
+button_frame = tk.Frame(frame4, bg= 'white')
 button_frame.pack(side=tk.BOTTOM)
 
 btn_rock = tk.Button(
@@ -506,9 +537,10 @@ btn_scissors = tk.Button(
     image=photo_scissors,
 )
 
-btn_rock.place(x=250, y=450)
-btn_paper.place(x=320, y=450)
-btn_scissors.place(x=390, y=450)
+btn_rock.place(x=200, y=450)
+btn_paper.place(x=300, y=450)
+btn_scissors.place(x=400, y=450)
+
 
 openFrame(frame1)
 window.mainloop()
