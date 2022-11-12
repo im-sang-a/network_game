@@ -326,16 +326,13 @@ startbg=PhotoImage(file="image/startbg.gif")
 treebg=PhotoImage(file="image/tree.gif")
 waitbg=PhotoImage(file="image/waiting.gif")
 select_ch=PhotoImage(file="image/select_ch.gif")
+
 me=PhotoImage(file="image/me.gif")
 you=PhotoImage(file="image/you.gif")
-your_nick = PhotoImage(file="image/your_nick.gif")
-opp_nick = PhotoImage(file = "image/opp_nick.gif")
-game_log = PhotoImage(file = "image/game_log.gif")
 game=PhotoImage(file = "image/game.gif")
 round_start = PhotoImage(file = "image/round_start.gif")
 animals_img = PhotoImage(file = "image/animals.gif")
-wait_img = PhotoImage(file = "image/wait_please.gif")
-welcome_img = PhotoImage(file = "image/welcome.gif")
+
 
 
 #frame1(게임 첫 화면)
@@ -428,6 +425,8 @@ lbl_line = tk.Label(
 ).pack()
 lbl_welcome = tk.Label(top_message_frame, text="",bg='white')
 lbl_welcome.pack()
+#welcome_lb = tk.Label(frame4, image = welcome_img,bg='white')
+#welcome_lb.place(x = 220, y= 15)
 lbl_line_server = tk.Label(
     top_message_frame,
     text="***********************************************************",bg='white'
