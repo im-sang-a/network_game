@@ -50,6 +50,14 @@ def character_select4(e):
 def select_ok(e):
     select_char_can.configure(image = a)
 
+def char_select():
+    img_a = str(a)
+    print("img_a:", img_a)
+    char_image = f'$image_char: {your_name}: {img_a}'
+    print(char_image)
+    client.send(char_image.encode())
+
+
 def chat_send():
     message = f'message: {your_name}: {chat_input.get()}'
     client.send(message.encode('ascii'))
@@ -102,9 +110,6 @@ def count_down(my_timer, nothing):
 
     lbl_game_round["text"] = "Game " + str(game_round) + " round 가 시작되었습니다."
     game_lb = tk.Label(top_left_frame, image = game)
-    #round_start_lb = tk.Label(image =  round_start)
-    #game_lb.place(x = 285,  y  = 65)
-    #round_start_lb.place(x = 370, y = 60)
     lbl_game_round["text"] = "Game " + str(game_round) + " round 가 시작되었습니다."
 
     while my_timer > 0:
@@ -128,7 +133,7 @@ def choice(arg):
         enable_disable_buttons("disable")
 
 
-def connect_to_server(name): #
+def connect_to_server(name):
     global client, HOST_PORT, HOST_ADDR, your_name
     try:
         client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -152,6 +157,9 @@ def connect_to_server(name): #
             + " 연결 할 수 없습니다. 다시 시도해주세요. "
         )
 
+def game_start():
+    client.send("$entered_game".encode())
+    openFrame(frame4)
 
 def receive_message_from_server(sck, m): #매칭
     global your_name, opponent_name, game_round
@@ -166,23 +174,21 @@ def receive_message_from_server(sck, m): #매칭
             break
 
         if from_server.startswith("welcome"):
-            #이걸 바꿔야 함. 안에 if문들
+
             if from_server == "welcome1":
                 lbl_welcome["text"] = (
                     " 환영합니다! " + your_name + " 님 상대방을 기다려주세요."
                 )
             elif from_server == "welcome2":
-            #이것도 바꿔야 함.
+
                 lbl_welcome["text"] = (
                     " 환영합니다! " + your_name + " 님 상대방을 기다려주세요."
                 )
             lbl_line_server.pack()
-            #wait_lb = tk.Label(frame4, image=wait_img)
-            #wait_lb.place(x=332, y=20)
 
 
         elif from_server.startswith("opponent_name$"):
-            # 이것도 바꿔야 함(상대방까지 매칭 완료된 상황)
+
             opponent_name = from_server.replace("opponent_name$", "")
             select_anchar_user = tk.Label(frame3, text=opponent_name,bg="white",bd=0)
             select_anchar_user.place(x=300, y=13)
@@ -202,9 +208,23 @@ def receive_message_from_server(sck, m): #매칭
                 print("chat_receive worked. message received and inserted")
             except:
                 print("error. chat_receive not working. no message received")
-###########################################################
-        elif from_server.startswith("start"):
-            gamestart()
+
+        elif from_server.startswith("$opp_img_choice:"):
+            opp_img_choice = from_server[-8:len(from_server)]
+            print("opp_img_choice:", opp_img_choice)
+            # select_char_opp.configure(image=opp_img_choice[2:])
+            opp_img = tk.PhotoImage(file="image/" + opp_img_choice[2:] + ".gif")  # 경로를 따로 지정하지 않으면 파일이 있는 위치를 가리킴.
+            # label = tk.Label(image=opp_img)
+            select_char_opp = tk.Label(frame3, width=150, height=150, image=opp_img)  ##상대방 캐릭터 선택 결과 출력 위치
+            select_char_opp.place(x=220, y=50)
+
+        elif from_server.startswith("$start_game"):
+            print("client received the message start_game. start count_down")
+            threading._start_new_thread(count_down, (game_timer, ""))
+
+
+        #elif from_server.startswith("start"):
+           # gamestart()
 
         elif from_server.startswith("$opponent_choice"):
             # 서버에서 상대방 선택-> 가위 바위 보 선택
@@ -275,7 +295,7 @@ def receive_message_from_server(sck, m): #매칭
 
             threading._start_new_thread(count_down, (game_timer, ""))
     sck.close()
-
+"""
 def gameready():
     ready_message="start"
     client.send(ready_message.encode())
@@ -287,6 +307,7 @@ def gamestart():
     top_frame.pack()
     middle_frame.pack()
     threading._start_new_thread(count_down, (game_timer, ""))
+"""
 
 '**************************게임창 띄우기******************************'
 window=tkinter.Tk()
@@ -359,7 +380,7 @@ select_ch_you_lb=tk.Label(frame3,image=you,bd=0)
 select_ch_you_lb.place(x=250,y=13)
 
 #캐릭터 선택 버튼
-char_select_br = tk.Button(frame3,image=select_ch,bd=1)
+char_select_br = tk.Button(frame3,image=select_ch,bd=1,command = char_select)
 char_select_br.place(x =200,y=650)
 #캐릭터 버튼 배치
 char_image1 = tk.Button(frame3,image=image1, width = 200, height = 200)
@@ -391,7 +412,8 @@ chat_br = tk.Button(frame3, text=" 전송 ", command = chat_send)
 chat_br.place(x =630,y=495)
 
 #가위바위보 게임시작 버튼
-gamest_bt= tk.Button(frame3,image=playbt,command=gameready,bd=0)
+#gamest_bt= tk.Button(frame3,image=playbt,command=gameready,bd=0)
+gamest_bt= tk.Button(frame3,image=playbt,command=game_start)
 gamest_bt.place(x=480,y=550)
 
 your_name = ""
