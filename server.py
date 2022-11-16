@@ -37,13 +37,13 @@ clientFrame.pack(side=tk.BOTTOM, pady=(5, 10))
 
 
 server = None
-HOST_ADDR = "192.168.16.1"
+HOST_ADDR = "192.168.56.1"
 HOST_PORT = 8080
 client_name = " "
 clients = []
 clients_names = []
 player_data = []
-ready_data=[]
+player = 0
 
 # 서버 기능 시작
 def start_server():
@@ -87,7 +87,8 @@ def accept_clients(the_server, y):
 # 현재 클라이언트로부터 메시지를 받는 함수 AND
 # 해당 메시지를 다른 클라이언트에게 보냄
 def send_receive_client_message(client_connection, client_ip_addr):
-    global server, client_name, clients, player_data, player0, player1
+    global server, client_name, clients, player_data, player0, player1, player_img_data, player
+
     client_msg = " "
     # 클라이언트에게 환영 메세지 보내기
     client_name = client_connection.recv(4096)
@@ -110,24 +111,43 @@ def send_receive_client_message(client_connection, client_ip_addr):
 
     while True:
         data = client_connection.recv(4096).decode()
+        print("data: ", data)
         if not data: break
+        #$image_char: one: pyimage2
+        if data.startswith("$image_char"):
+            img_choice = data[-8:len(data)]
+            print("img_choice:", img_choice)
+            print("clients_names[0]:", str(clients_names[0]))
+            print("clients_names[1]:", str(clients_names[1]))
 
-        if data.startswith("message"):
+            cli_name = f'b\'{data[13:-10]}\''
+            print("cli_name:", cli_name)
+            #clients_name 리스트 안에 각 클라이언트의 이름이 저장되어 있음
+
+            if str(clients_names[0]) == cli_name:
+              clients[1].send(f'$opp_img_choice: {img_choice}'.encode())
+            elif str(clients_names[1]) == cli_name:
+              clients[0].send(f'$opp_img_choice: {img_choice}'.encode())
+            else:
+              print("error. have no corresponding nickname")
+
+        elif data.startswith("message"):
             print('message received: ', data)
             # client_connection.sendall(data.encode())
             for client in clients:
                 client.send(data.encode())
                 print('server sended a message to ', client)
 
-        elif data.startswith("start"):
-            if len(ready_data)<2:
-                ready_data.append("start")
-                print("plus")
-            if len(ready_data)==2:
+        elif data.startswith("$entered_game"):
+            player += 1
+            print("player added", player)
+            if player == 2:
+                print("player 2 done. let the game begin.")
                 for client in clients:
-                    client.send("start".encode())
-
+                    client.send("$start_game".encode())
+                print("send successfully done")
         else:
+            print("server.py에서 else로 들어옴")
             # 수신된 데이터에서 플레이어 선택
             player_choice = data[11:len(data)]
 
@@ -140,6 +160,7 @@ def send_receive_client_message(client_connection, client_ip_addr):
                 player_data.append(msg)
 
             if len(player_data) == 2:
+                print("$opponent_choice 보낸다~~ 타이머 시작한다 ")
                 # 플레이어 선택을 다른 플레이어에게 보냄
                 player_data[0].get("socket").send("$opponent_choice".encode() + player_data[1].get("choice").encode())
                 player_data[1].get("socket").send("$opponent_choice".encode() + player_data[0].get("choice").encode())
