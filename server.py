@@ -8,7 +8,7 @@ from time import sleep
 window = tk.Tk()
 window.title("Sever")
 
-# µÎ °³ÀÇ ¹öÆ° À§Á¬À¸·Î ±¸¼ºµÈ »ó´Ü ÇÁ·¹ÀÓ (¿¹: btnStart, btnStop)
+# ë‘ ê°œì˜ ë²„íŠ¼ ìœ„ì ¯ìœ¼ë¡œ êµ¬ì„±ëœ ìƒë‹¨ í”„ë ˆì„ (ì˜ˆ: btnStart, btnStop)
 topFrame = tk.Frame(window)
 btnStart = tk.Button(topFrame, text="Start", command=lambda : start_server())
 btnStart.pack(side=tk.LEFT)
@@ -16,7 +16,7 @@ btnStop = tk.Button(topFrame, text="Stop", command=lambda : stop_server(), state
 btnStop.pack(side=tk.LEFT)
 topFrame.pack(side=tk.TOP, pady=(5, 0))
 
-# È£½ºÆ® ¹× Æ÷Æ® Á¤º¸¸¦ Ç¥½ÃÇÏ±â À§ÇÑ µÎ °³ÀÇ ·¹ÀÌºí·Î ±¸¼ºµÈ Áß°£ ÇÁ·¹ÀÓ
+# í˜¸ìŠ¤íŠ¸ ë° í¬íŠ¸ ì •ë³´ë¥¼ í‘œì‹œí•˜ê¸° ìœ„í•œ ë‘ ê°œì˜ ë ˆì´ë¸”ë¡œ êµ¬ì„±ëœ ì¤‘ê°„ í”„ë ˆì„
 middleFrame = tk.Frame(window)
 lblHost = tk.Label(middleFrame, text = "Address: X.X.X.X")
 lblHost.pack(side=tk.LEFT)
@@ -24,7 +24,7 @@ lblPort = tk.Label(middleFrame, text = "Port:XXXX")
 lblPort.pack(side=tk.LEFT)
 middleFrame.pack(side=tk.TOP, pady=(5, 0))
 
-# Å¬¶óÀÌ¾ğÆ® ¿µ¿ª
+# í´ë¼ì´ì–¸íŠ¸ ì˜ì—­
 clientFrame = tk.Frame(window)
 lblLine = tk.Label(clientFrame, text="**********Client List**********").pack()
 scrollBar = tk.Scrollbar(clientFrame)
@@ -37,15 +37,15 @@ clientFrame.pack(side=tk.BOTTOM, pady=(5, 10))
 
 
 server = None
-HOST_ADDR = "192.168.16.1"
+HOST_ADDR = ""
 HOST_PORT = 8080
 client_name = " "
 clients = []
 clients_names = []
 player_data = []
-ready_data=[]
+player = 0
 
-# ¼­¹ö ±â´É ½ÃÀÛ
+# ì„œë²„ ê¸°ëŠ¥ ì‹œì‘
 def start_server():
     global server, HOST_ADDR, HOST_PORT
     btnStart.config(state=tk.DISABLED)
@@ -56,7 +56,7 @@ def start_server():
     print(socket.SOCK_STREAM)
 
     server.bind((HOST_ADDR, HOST_PORT))
-    server.listen(2) ##2¸í¸¸ Á¢¼Ó °¡´ÉÇÑ °Å È®ÀÎ ¿Ï·á
+    server.listen(2) ##2ëª…ë§Œ ì ‘ì† ê°€ëŠ¥í•œ ê±° í™•ì¸ ì™„ë£Œ
 
 
     threading._start_new_thread(accept_clients, (server, " "))
@@ -65,7 +65,7 @@ def start_server():
     lblPort["text"] = "Port: " + str(HOST_PORT)
 
 
-# ¼­¹ö ±â´É ÁßÁö
+# ì„œë²„ ê¸°ëŠ¥ ì¤‘ì§€
 def stop_server():
     global server
     btnStart.config(state=tk.NORMAL)
@@ -80,16 +80,17 @@ def accept_clients(the_server, y):
             print('clients: ', clients)
             print('client: ', client)
 
-            # GUI ½º·¹µå ¸·È÷Áö ¾Êµµ·Ï ½º·¹µå »ç¿ë
+            # GUI ìŠ¤ë ˆë“œ ë§‰íˆì§€ ì•Šë„ë¡ ìŠ¤ë ˆë“œ ì‚¬ìš©
             threading._start_new_thread(send_receive_client_message, (client, addr))
 
 
-# ÇöÀç Å¬¶óÀÌ¾ğÆ®·ÎºÎÅÍ ¸Ş½ÃÁö¸¦ ¹Ş´Â ÇÔ¼ö AND
-# ÇØ´ç ¸Ş½ÃÁö¸¦ ´Ù¸¥ Å¬¶óÀÌ¾ğÆ®¿¡°Ô º¸³¿
+# í˜„ì¬ í´ë¼ì´ì–¸íŠ¸ë¡œë¶€í„° ë©”ì‹œì§€ë¥¼ ë°›ëŠ” í•¨ìˆ˜ AND
+# í•´ë‹¹ ë©”ì‹œì§€ë¥¼ ë‹¤ë¥¸ í´ë¼ì´ì–¸íŠ¸ì—ê²Œ ë³´ëƒ„
 def send_receive_client_message(client_connection, client_ip_addr):
-    global server, client_name, clients, player_data, player0, player1
+    global server, client_name, clients, player_data, player0, player1, player_img_data, player
+
     client_msg = " "
-    # Å¬¶óÀÌ¾ğÆ®¿¡°Ô È¯¿µ ¸Ş¼¼Áö º¸³»±â
+    # í´ë¼ì´ì–¸íŠ¸ì—ê²Œ í™˜ì˜ ë©”ì„¸ì§€ ë³´ë‚´ê¸°
     client_name = client_connection.recv(4096)
     if len(clients) < 2:
         client_connection.send("welcome1".encode())
@@ -97,38 +98,57 @@ def send_receive_client_message(client_connection, client_ip_addr):
         client_connection.send("welcome2".encode())
 
     clients_names.append(client_name)
-    update_client_names_display(clients_names)  # ¾÷µ¥ÀÌÆ® µÈ Å¬¶óÀÌ¾ğÆ® ÀÌ¸§ ³ªÅ¸³²
+    update_client_names_display(clients_names)  # ì—…ë°ì´íŠ¸ ëœ í´ë¼ì´ì–¸íŠ¸ ì´ë¦„ ë‚˜íƒ€ë‚¨
 
     if len(clients) > 1:
         print("matched 2")
         sleep(1)
 
-        # »ó´ë¹æ ÀÌ¸§ º¸³»±â
+        # ìƒëŒ€ë°© ì´ë¦„ ë³´ë‚´ê¸°
         clients[0].send("opponent_name$".encode() + clients_names[1])
         clients[1].send("opponent_name$".encode() + clients_names[0])
 
 
     while True:
         data = client_connection.recv(4096).decode()
+        print("data: ", data)
         if not data: break
+        #$image_char: one: pyimage2
+        if data.startswith("$image_char"):
+            img_choice = data[-8:len(data)]
+            print("img_choice:", img_choice)
+            print("clients_names[0]:", str(clients_names[0]))
+            print("clients_names[1]:", str(clients_names[1]))
 
-        if data.startswith("message"):
+            cli_name = f'b\'{data[13:-10]}\''
+            print("cli_name:", cli_name)
+            #clients_name ë¦¬ìŠ¤íŠ¸ ì•ˆì— ê° í´ë¼ì´ì–¸íŠ¸ì˜ ì´ë¦„ì´ ì €ì¥ë˜ì–´ ìˆìŒ
+
+            if str(clients_names[0]) == cli_name:
+              clients[1].send(f'$opp_img_choice: {img_choice}'.encode())
+            elif str(clients_names[1]) == cli_name:
+              clients[0].send(f'$opp_img_choice: {img_choice}'.encode())
+            else:
+              print("error. have no corresponding nickname")
+
+        elif data.startswith("message"):
             print('message received: ', data)
             # client_connection.sendall(data.encode())
             for client in clients:
                 client.send(data.encode())
                 print('server sended a message to ', client)
 
-        elif data.startswith("start"):
-            if len(ready_data)<2:
-                ready_data.append("start")
-                print("plus")
-            if len(ready_data)==2:
+        elif data.startswith("$entered_game"):
+            player += 1
+            print("player added", player)
+            if player == 2:
+                print("player 2 done. let the game begin.")
                 for client in clients:
-                    client.send("start".encode())
-
+                    client.send("$start_game".encode())
+                print("send successfully done")
         else:
-            # ¼ö½ÅµÈ µ¥ÀÌÅÍ¿¡¼­ ÇÃ·¹ÀÌ¾î ¼±ÅÃ
+            print("server.pyì—ì„œ elseë¡œ ë“¤ì–´ì˜´")
+            # ìˆ˜ì‹ ëœ ë°ì´í„°ì—ì„œ í”Œë ˆì´ì–´ ì„ íƒ
             player_choice = data[11:len(data)]
 
             msg = {
@@ -140,22 +160,23 @@ def send_receive_client_message(client_connection, client_ip_addr):
                 player_data.append(msg)
 
             if len(player_data) == 2:
-                # ÇÃ·¹ÀÌ¾î ¼±ÅÃÀ» ´Ù¸¥ ÇÃ·¹ÀÌ¾î¿¡°Ô º¸³¿
+                print("$opponent_choice ë³´ë‚¸ë‹¤~~ íƒ€ì´ë¨¸ ì‹œì‘í•œë‹¤ ")
+                # í”Œë ˆì´ì–´ ì„ íƒì„ ë‹¤ë¥¸ í”Œë ˆì´ì–´ì—ê²Œ ë³´ëƒ„
                 player_data[0].get("socket").send("$opponent_choice".encode() + player_data[1].get("choice").encode())
                 player_data[1].get("socket").send("$opponent_choice".encode() + player_data[0].get("choice").encode())
 
                 player_data = []
 
 
-    # Å¬¶óÀÌ¾ğÆ® ÀÎµ¦½º¸¦ Ã£°í ÀÌ¸§, ¿¬°á ¸ñ·Ï¿¡¼­ Á¦°Å
+    # í´ë¼ì´ì–¸íŠ¸ ì¸ë±ìŠ¤ë¥¼ ì°¾ê³  ì´ë¦„, ì—°ê²° ëª©ë¡ì—ì„œ ì œê±°
     idx = get_client_index(clients, client_connection)
     del clients_names[idx]
     del clients[idx]
     client_connection.close()
 
-    update_client_names_display(clients_names)  # Å¬¶óÀÌ¾ğÆ® ÀÌ¸§ Ç¥½Ã ¾÷µ¥ÀÌÆ®
+    update_client_names_display(clients_names)  # í´ë¼ì´ì–¸íŠ¸ ì´ë¦„ í‘œì‹œ ì—…ë°ì´íŠ¸
 
-# Å¬¶óÀÌ¾ğÆ® ¸ñ·Ï¿¡¼­ ÇöÀç Å¬¶óÀÌ¾ğÆ®ÀÇ ÀÎµ¦½º ¹İÈ¯
+# í´ë¼ì´ì–¸íŠ¸ ëª©ë¡ì—ì„œ í˜„ì¬ í´ë¼ì´ì–¸íŠ¸ì˜ ì¸ë±ìŠ¤ ë°˜í™˜
 def get_client_index(client_list, curr_client):
     idx = 0
     for conn in client_list:
@@ -166,8 +187,8 @@ def get_client_index(client_list, curr_client):
     return idx
 
 
-# »õ Å¬¶óÀÌ¾ğÆ®°¡ ¿¬°áÇÒ ¶§ Å¬¶óÀÌ¾ğÆ® ÀÌ¸§ Ç¥½Ã ¶Ç´Â ¾÷µ¥ÀÌÆ®
-# ¿¬°áµÈ Å¬¶óÀÌ¾ğÆ®ÀÇ ¿¬°áÀÌ ²÷°åÀ» ¶§
+# ìƒˆ í´ë¼ì´ì–¸íŠ¸ê°€ ì—°ê²°í•  ë•Œ í´ë¼ì´ì–¸íŠ¸ ì´ë¦„ í‘œì‹œ ë˜ëŠ” ì—…ë°ì´íŠ¸
+# ì—°ê²°ëœ í´ë¼ì´ì–¸íŠ¸ì˜ ì—°ê²°ì´ ëŠê²¼ì„ ë•Œ
 def update_client_names_display(name_list):
     tkDisplay.config(state=tk.NORMAL)
     tkDisplay.delete('1.0', tk.END)
