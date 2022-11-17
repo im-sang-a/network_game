@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import tkinter as tk
+import tkinter as tkh
 import tkinter.messagebox
 import tkinter.simpledialog
 import socket
